@@ -1,4 +1,4 @@
-/* Reset basic styling */
+
 body, html {
     margin: 0;
     padding: 0;
@@ -13,7 +13,7 @@ body, html {
     flex-direction: column;
   }
   
-  /* Navbar styling */
+
   header {
     background-color: rgba(0, 0, 0, 0.8);
     padding: 10px 0;
@@ -42,7 +42,7 @@ body, html {
     color: gray;
   }
   
-  /* Content styling */
+
   main {
     flex: 1;
     display: flex;
