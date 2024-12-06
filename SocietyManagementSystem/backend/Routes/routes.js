@@ -1,9 +1,9 @@
 `use strict`;
-
+//this file handles log in and signup related routes 
 import express from "express";
 import {getUser,createUser} from "../Controller/controller.js";
 import passport from "passport";
-
+import User from "../Model/userModel.js";
 const router = express.Router();
 
 //initial Welcome page
@@ -15,22 +15,25 @@ router.get("/about", (req,res) =>{
     res.json("This Is About Page");
 });
 
-router.get("/user" ,getUser);
-router.post("/user",createUser);
 
+//give us the login page
 router.get("/login", (req,res) => {
-    res.json("Log IN Page");
+    res.send("required a log in form")
 });
 
-router.post("/login", (req, res) => {
-    console.log(req.body); 
-    const { name } = req.body || {}; 
-    console.log(name);
+//log in form filled out
+router.post("/login", async(req, res) => {
+     
+    const { email,flatno } = await req.body || {}; 
+    //console.log(email,flatno,"route"); //test passed
     try {
-        if (!name) {
-            return res.status(400).json({ msg: 'Bad request: no name found' });
-        }
-        return res.status(200).json({ msg: 'Logged in' });
+        if (!email || !flatno) {
+            return res.status(400).json({ msg: 'Bad request: no email or flat found' });
+        } 
+        const user = getUser(email)
+        const id = user._id.toString()
+        res.status(201).redirect("/society/homepage");
+
     } catch(error) {
         console.log(error);
         return res.status(500).json({ msg: 'Server error' });
@@ -49,34 +52,57 @@ router.get(
     "/oauth2/redirect/google",
     passport.authenticate('google', { failureRedirect: '/', failureMessage: true }),
     (req, res) => {
-        // At this point, the user has been authenticated, and req.user contains the profile data
         
         const { name,email } = req.user; // Access the email and display name from the user object
-        
-        res.redirect(`/society/homepage?email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}`);
+
+        res.redirect(`/society/registerPage?name=${encodeURIComponent(name)}&email=${encodeURIComponent(email)}`);
     }
 );
   
 //protected
-router.get('/homepage', (req, res) => {
-    const { name,email } = req.query; // Access data from query parameters
-    console.log(name,email);
+router.get('/registerPage', (req, res) => {
+    
+    const name = decodeURIComponent(req.query.name) || {}; 
+    const email = decodeURIComponent(req.query.email) || {};
     if (!email || !name) {
-      throw new Error(`fields missing`); // If no user data is found, redirect to login
-    }
-  
-    // Use the user data (email and displayName) in the response or for other logic
-    res.json({
-      message: 'Welcome to the homepage!',
-      email: email,
-      displayName: name,
-    });
-});
-//nopt complete yet
-router.post("/homepage", passport.authenticate((req,res) => {
-   console.log();
-}));
+        throw new Error(`name and email missijg from url missing`); 
+    };
+    console.log(name,email,"protected");
 
-//creating user
-//router.post()
+    const queryData = JSON.stringify({ message: 'Welcome to the registerPage!',name, email });
+    res.json({username : name, email: email});
+
+});
+
+//Processing register formm and creating an user
+router.post("/registerPage", (req,res) => {
+    
+    const {username,email,flatno,usertype,contactno,role} = req.body || {};
+    //console.log(username,email,flatno,usertype,contactno,role); //test passed
+
+    if (!email || !username) {
+        throw new Error(`fields missing from url missing`); 
+    };
+
+    if (usertype === "maintenance" && !role) {
+        return res.status(400).json({ error: "Role is required for maintenance users" });
+    } else if (usertype === "resident" && role) {
+        return res.status(400).json({ error: "Role should not be provided for resident users" });
+     }
+    
+    const verifiedUser = createUser(username,email,flatno,usertype,contactno,role)
+    .then((verifiedUser) => {
+        console.log("Verified User:", verifiedUser._id.toString()); // Log the created user data // json data user returned from db //test Passed
+        const id = verifiedUser._id.toString();
+        // Redirect to the homepage after successful registration
+        res.status(201).redirect('/society/homepage/');
+    })
+    .catch((error) => {
+        console.error("Error in /registerPage:", error.message);
+        res.status(500).json({ error: error.message });
+    });
+  
+});
+
+
 export default router; 

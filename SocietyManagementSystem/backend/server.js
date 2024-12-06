@@ -27,7 +27,10 @@ app.use(express.json());
 app.use(express.urlencoded({extended : true}));
 app.use(passport.initialize());
 app.use(passport.session());
-app.use("/society",routes);
+
+//routes
+app.use("/society",routes); //initial and handlinng login
+//app.use("/homepage", homeRoutes);
 
 
 

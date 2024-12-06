@@ -7,7 +7,8 @@ const userSchema = new mongoose.Schema({
     },
     email: {
         type: String,
-        required: true
+        required: true,
+        unique: true,
     },
     flatno: {
         type: String,
@@ -15,10 +16,16 @@ const userSchema = new mongoose.Schema({
     },
     usertype: {
         type: String,
-        required: true
+        required: true,
+        enum: ["resident", "maintenance"]
     },
-    contactNo : {
-        type: Number,
+    role : {
+        type: String, // Only required for maintenance
+        required: function () {
+        return this.userType === "maintenance";}
+    },
+    contactno : {
+        type: String,
         required:true
     }
 });

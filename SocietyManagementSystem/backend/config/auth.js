@@ -1,3 +1,4 @@
+`use strict`;
 import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 
@@ -15,7 +16,7 @@ passport.use(
         
         const name = profile.displayName ;
         const email = profile.emails[0].value;
-        console.log(name,email);
+        console.log(name,email,"auth");
         return done(null, {name,email});
       }
     )
