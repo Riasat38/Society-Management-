@@ -9,9 +9,8 @@ import ensureAuthenticated from './Middleware/loggedIn.js';
 import ensureAdmin from './Middleware/admincheck.js'
 import addUserIdToUrl from "../Middleware/urlencoder.js";
 
-router.use(ensureAuthenticated);
 router.use(addUserIdToUrl);
-
+//HomePage  router
 router.get("/:id", ensureAdmin, (req,res) =>{ 
     const user = req.user;
     if (!user){
@@ -20,8 +19,6 @@ router.get("/:id", ensureAdmin, (req,res) =>{
     res.status(200).json(user);
 
 });
-
-
 
 
 // Services route

@@ -95,7 +95,7 @@ router.post("/registerPage", (req,res) => {
         console.log("Verified User:", verifiedUser._id.toString()); // Log the created user data // json data user returned from db //test Passed
         const id = verifiedUser._id.toString();
         // Redirect to the homepage after successful registration
-        res.status(201).redirect('/society/homepage/');
+        res.status(201).redirect(`/society/homepage/id = ${encodeURIComponent(id)}`);
     })
     .catch((error) => {
         console.error("Error in /registerPage:", error.message);

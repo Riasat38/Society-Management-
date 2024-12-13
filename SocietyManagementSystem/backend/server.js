@@ -32,7 +32,7 @@ app.use(passport.session());
 //routes
 app.use("/society",routes); //initial and handlinng login
 
-app.use("/society/homepage", ensureAuthenticated, ensureAdmin, homeRoutes);
+app.use("/society/homepage", ensureAuthenticated, homeRoutes);
 
 
 
