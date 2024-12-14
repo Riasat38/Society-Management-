@@ -5,7 +5,7 @@ import express from "express";
 import passport from "passport";
 import User from "../Model/userModel.js";
 const router = express.Router();
-import ensureAuthenticated from './Middleware/loggedIn.js';
+import {getStaff} from "../Controller/homePageController.js";
 import ensureAdmin from './Middleware/admincheck.js'
 import addUserIdToUrl from "../Middleware/urlencoder.js";
 
@@ -20,7 +20,14 @@ router.get("/:id", ensureAdmin, (req,res) =>{
 
 });
 
+router.get('/:id/adminPanel', ensureAdmin, (req,res) => {
+    res.status(200).json({msg : 'render a page'})
+});
 
+router.post('/:id/adminPanel', ensureAdmin, (req,res) => {
+    const info = req.body;
+    res.status(200);
+});
 // Services route
 router.get('/:id/services', async (req, res) => {
     const userId = req.params.id;
@@ -35,4 +42,12 @@ router.get('/:id/services', async (req, res) => {
     }
 });
 
+//staff directory
+router.get('/:id/staff', (req,res) => {
+    const staff_list_obj = getStaff();
+    if (!staff_list_obj){
+        res.status(400).json({msg :"Bad request. Problem finding staff records"});
+    }
+    res.status(200).json(staff_list_obj);
+});
 export default router;

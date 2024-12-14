@@ -3,29 +3,24 @@
 import User from "../Model/userModel.js";
 
 export const getUser = (email) => {
-    const user = User.findOne({email: email})
-    .then(user => {
-        console.log(user); // Will log the found document or `null` if not found
-      })
-      .catch(err => {
-        console.error('Error:', err);
-      });
+    const user =  User.findOne({email: email})
     //console.log(email,"getuser"); //test passed
-    return user; //thisreturning undefined 
+      return user   //return null if user not found
 };
 
 export const createUser = async (username, email, flatno, usertype, contactno, role) => {
     try {
-      if (!username || !email || !flatno || !usertype || !contactno) {
+      if (!username || !email  || !usertype || !contactno) {
         throw new Error("Some required fields are missing");
       }
-      if (User.findOne({email: email})){
-        throw new Error(`${email} already exists`);
+      const existingUser = await User.findOne({ email });
+      if (existingUser) {
+          throw new Error(`${email} already exists`);
       }
       if (usertype === "maintenance" && !role) {
         throw new Error("Role is required for maintenance users");
-      } else if (usertype === "resident" && role) {
-        throw new Error("Role should not be provided for resident users");
+      } else if (usertype === "resident" && !flatno) {
+        throw new Error("FlatNO is required for for resident users");
       }
   
       const userData = {
@@ -38,6 +33,10 @@ export const createUser = async (username, email, flatno, usertype, contactno, r
   
       if (usertype === "maintenance") {
         userData.role = role;
+      }
+      const userCount = await User.countDocuments();
+      if (userCount === 0 ){
+        userData.admin = true;
       }
   
       // Create user document in the database

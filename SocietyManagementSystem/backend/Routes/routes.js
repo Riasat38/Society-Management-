@@ -30,9 +30,12 @@ router.post("/login", async(req, res) => {
         if (!email || !flatno) {
             return res.status(400).json({ msg: 'Bad request: no email or flat found' });
         } 
-        const user = getUser(email)
-        const id = user._id.toString()
-        res.status(201).redirect("/society/homepage");
+        const user = getUser(email);
+        if (user === null){
+            res.status(401).redirect('/society/login');
+        }
+        const id = user._id.toString();
+        res.status(201).redirect(`/society/homepage/:${id}`);
 
     } catch(error) {
         console.log(error);
@@ -86,8 +89,8 @@ router.post("/registerPage", (req,res) => {
 
     if (usertype === "maintenance" && !role) {
         return res.status(400).json({ error: "Role is required for maintenance users" });
-    } else if (usertype === "resident" && role) {
-        return res.status(400).json({ error: "Role should not be provided for resident users" });
+    } else if (usertype === "resident" && !flatno) {
+        return res.status(400).json({ error: "FlatNo is required for resident users" });
      }
     
     const verifiedUser = createUser(username,email,flatno,usertype,contactno,role)
@@ -95,7 +98,7 @@ router.post("/registerPage", (req,res) => {
         console.log("Verified User:", verifiedUser._id.toString()); // Log the created user data // json data user returned from db //test Passed
         const id = verifiedUser._id.toString();
         // Redirect to the homepage after successful registration
-        res.status(201).redirect(`/society/homepage/id = ${encodeURIComponent(id)}`);
+        res.status(201).redirect(`/society/homepage/${(id)}`);
     })
     .catch((error) => {
         console.error("Error in /registerPage:", error.message);
