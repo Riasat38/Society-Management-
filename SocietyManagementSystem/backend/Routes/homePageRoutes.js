@@ -5,7 +5,7 @@ import express from "express";
 import passport from "passport";
 import User from "../Model/userModel.js";
 const router = express.Router();
-import {getStaff} from "../Controller/homePageController.js";
+import {getStaff,createHelpPost,getPosts} from "../Controller/homePageController.js";
 import ensureAdmin from './Middleware/admincheck.js'
 import addUserIdToUrl from "../Middleware/urlencoder.js";
 
@@ -49,5 +49,33 @@ router.get('/:id/staff', (req,res) => {
         res.status(400).json({msg :"Bad request. Problem finding staff records"});
     }
     res.status(200).json(staff_list_obj);
+});
+
+//help wall
+router.get('/:id/wall', (req,res) => {
+    try{
+        const posts = getPosts();
+        if (!posts){
+            throw new Error("No posts Found");
+        }
+        res.status(200).json(posts);        //returning an object containing alll unresolved posts
+    } catch(error){
+        res.status(400).json(error);
+    }
+});
+router.post('/:id/wall', (req,res) => {
+    try{
+        const help_descr = req.body.description
+        const userId = req.params.id
+        const help_post = createHelpPost(help_descr,userId)
+        if (help_post){
+             res.status(200).redirect('/society/homepage/:id/wall')
+        }else{
+            throw new Error("Post unsuccessful");
+        }
+
+    }catch(error){
+        res.status(400).json(error)
+    }
 });
 export default router;
