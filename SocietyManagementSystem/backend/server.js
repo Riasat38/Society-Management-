@@ -33,6 +33,7 @@ app.use(passport.session());
 app.use("/society",routes); //initial and handlinng login
 
 app.use("/society/homepage", ensureAuthenticated, homeRoutes);
+app.use("/society/homepage", ensureAuthenticated, homeRoutes);
 
 
 
