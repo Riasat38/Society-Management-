@@ -12,7 +12,7 @@ const router = express.Router();
 // Middleware to ensure the user is an admin
 router.use(ensureAdmin);
 
-// GET: Fetch all announcements
+//Fetch all announcements
 router.get("/:id/adminPanel/announcements", async (req, res) => {
     try {
         const announcements = await getAllAnnouncements();

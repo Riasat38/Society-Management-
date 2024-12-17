@@ -5,29 +5,28 @@ import express from "express";
 import passport from "passport";
 import User from "../Model/userModel.js";
 const router = express.Router();
-import {getStaff,createHelpPost,getPosts} from "../Controller/homePageController.js";
+//controllers
+import {getStaff,createHelpPost,getPosts, getSinglePost, resolveHelpPost,
+    deleteHelpPost,addCommentToHelpPost, updateComment, deleteComment
+} from "../Controller/homePageController.js";
+//middlewares
 import ensureAdmin from './Middleware/admincheck.js'
-import addUserIdToUrl from "../Middleware/urlencoder.js";
 
-router.use(addUserIdToUrl);
+
 //HomePage  router
-router.get("/:id", ensureAdmin, (req,res) =>{ 
-    const user = req.user;
+router.get("/:id", (req,res) =>{ 
+    const user = req.userId;
     if (!user){
-        res.status(400).json({error : `Could not find the user`});
+        res.status(400).json({error : `Could not find the user`}).redirect('/scoiet/login');
     }
-    res.status(200).json(user);
-
+    res.status(200).json({user});
 });
 
-router.get('/:id/adminPanel', ensureAdmin, (req,res) => {
-    res.status(200).json({msg : 'render a page'})
-});
+//AdMIN
+import adminRoutes from "./adminRoutes.js";
+router.use("/:id/adminPanel", ensureAdmin, adminRoutes);
 
-router.post('/:id/adminPanel', ensureAdmin, (req,res) => {
-    const info = req.body;
-    res.status(200);
-});
+
 // Services route
 router.get('/:id/services', async (req, res) => {
     const userId = req.params.id;
@@ -52,30 +51,25 @@ router.get('/:id/staff', (req,res) => {
 });
 
 //help wall
-router.get('/:id/wall', (req,res) => {
-    try{
-        const posts = getPosts();
-        if (!posts){
-            throw new Error("No posts Found");
-        }
-        res.status(200).json(posts);        //returning an object containing alll unresolved posts
-    } catch(error){
-        res.status(400).json(error);
-    }
-});
-router.post('/:id/wall', (req,res) => {
-    try{
-        const help_descr = req.body.description
-        const userId = req.params.id
-        const help_post = createHelpPost(help_descr,userId)
-        if (help_post){
-             res.status(200).redirect('/society/homepage/:id/wall')
-        }else{
-            throw new Error("Post unsuccessful");
-        }
+router.get('/:id/wall', getPosts);
+router.post('/:id/wall', createHelpPost);
+router.get('/:id/wall/:postId', getSinglePost);
+router.put('/:id/wall/:action', (req,res) => {
+    const { action } = req.params;
+    if (action === 'resolve') {
+        resolveHelpPost(req, res);
+      } else if (action === 'update') {
+        updateHelpPost(req, res);
+      } else {
+        res.status(400).json({ message: 'Invalid action' });
+      }
+}); 
+router.delete('/:id/wall', deleteHelpPost);
 
-    }catch(error){
-        res.status(400).json(error)
-    }
-});
+//comments
+router.post('/:id/wall/comments', addCommentToHelpPost);
+router.put('/:id/wall/comments', updateComment)
+router.delete('/:id/wall/comments', deleteComment)
+
+
 export default router;

@@ -1,22 +1,26 @@
 `use strict`;
 
 import dotenv from 'dotenv';
-dotenv.config();
 
 import express from "express";
 import path from "path";
-
+//routes
 import routes from "./Routes/routes.js";
-import homeRoutes from "./Routes/routes.js"
-import { fileURLToPath } from 'url';
+import homeRoutes from "./Routes/routes.js";
 import passport from './config/auth.js';
-import ensureAuthenticated from './Middleware/loggedIn.js'
-import ensureAdmin from './Middleware/admincheck.js'
+//middlewares
+import ensureAuthenticated from './Middleware/loggedIn.js';
+import ensureAdmin from './Middleware/admincheck.js';
+import addUserIdToUrl from './Middleware/urlencoder.js';
+//config
+import { fileURLToPath } from 'url';
 import session from 'express-session';
-import connectDB from "./config/db.js"
-connectDB();
+import connectDB from "./config/db.js";
 
-const port =  4069;
+connectDB();
+dotenv.config()
+
+const port =  process.env.PORT || 4069;
 const app = express();
 
 app.use(session({
@@ -30,10 +34,12 @@ app.use(express.urlencoded({extended : true}));
 app.use(passport.initialize());
 app.use(passport.session());
 //routes
+
 app.use("/society",routes); //initial and handlinng login
 
-app.use("/society/homepage", ensureAuthenticated, homeRoutes);
-app.use("/society/homepage", ensureAuthenticated, homeRoutes);
+app.use("/society/homepage", ensureAuthenticated,addUserIdToUrl, homeRoutes);
+
+
 
 
 

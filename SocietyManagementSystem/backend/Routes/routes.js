@@ -4,6 +4,7 @@ import express from "express";
 import {getUser,createUser} from "../Controller/controller.js";
 import passport from "passport";
 import User from "../Model/userModel.js";
+
 const router = express.Router();
 
 //initial Welcome page
@@ -28,11 +29,11 @@ router.post("/login", async(req, res) => {
     //console.log(email,flatno,"route"); //test passed
     try {
         if (!email || !flatno) {
-            return res.status(400).json({ msg: 'Bad request: no email or flat found' });
+            return res.status(400).json({ msg: 'Bad request: no email or flatNo found' });
         } 
-        const user = getUser(email);
+        const user = await getUser(email);
         if (user === null){
-            res.status(401).redirect('/society/login');
+            return res.status(401).redirect('/society');
         }
         const id = user._id.toString();
         res.status(201).redirect(`/society/homepage/:${id}`);
@@ -42,6 +43,25 @@ router.post("/login", async(req, res) => {
         return res.status(500).json({ msg: 'Server error' });
     }
 });
+
+router.get("/logout", (req, res) => {
+    req.logout((err) => {
+        if (err) {
+            console.error("Logout Error:", err);
+            return res.status(500).json({ msg: "Logout failed. Try again." });
+        }
+        req.session.destroy((err) => {
+            if (err) {
+                console.error("Session Destroy Error:", err);
+                return res.status(500).json({ msg: "Session could not be destroyed." });
+            }
+            res.clearCookie("connect.sid"); 
+            res.redirect("/society"); 
+        });
+    });
+});
+
+
 
 //signup page 
 router.get("/register", (req, res) => {

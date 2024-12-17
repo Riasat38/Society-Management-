@@ -32,4 +32,15 @@ const helpSchema = new mongoose.Schema({
     comments: [commentSchema]
 });
 
+helpSchema.pre('save', function (next) { 
+    if (this.resolve_status.resolved) { 
+        this.remove() .then(() => { 
+            console.log('Help post and its comments have been deleted'); 
+            next(); }) 
+            .catch(error => next(error)); 
+        } else { 
+            next(); 
+        } 
+});
+
 export default mongoose.model("Help", helpSchema);

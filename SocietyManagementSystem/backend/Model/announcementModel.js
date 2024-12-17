@@ -10,7 +10,7 @@ const announcementSchema = new mongoose.Schema({
         ref: "User", 
         required: true,
     },
-    createdAt: {
+    postedAt: {
         type: Date,
         default: Date.now, 
     },
