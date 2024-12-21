@@ -4,10 +4,11 @@ import dotenv from 'dotenv';
 
 import express from "express";
 import path from "path";
+import passport from './config/auth.js';
 //routes
 import routes from "./Routes/routes.js";
-import homeRoutes from "./Routes/routes.js";
-import passport from './config/auth.js';
+import homeRoutes from "./Routes/homePageRoutes.js";
+import adminRouter from "./Routes/adminRoutes.js";
 //middlewares
 import ensureAuthenticated from './Middleware/loggedIn.js';
 import ensureAdmin from './Middleware/admincheck.js';
@@ -37,8 +38,8 @@ app.use(passport.session());
 
 app.use("/society",routes); //initial and handlinng login
 
-app.use("/society/homepage", ensureAuthenticated,addUserIdToUrl, homeRoutes);
-
+app.use("/society/homepage", ensureAuthenticated, addUserIdToUrl, homeRoutes);
+app.use("/society/adminPanel/",ensureAuthenticated, ensureAdmin, addUserIdToUrl, adminRouter);
 
 
 

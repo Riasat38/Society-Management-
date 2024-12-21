@@ -1,11 +1,11 @@
 `use strict`
 
 import User from "../Model/userModel.js";
-import Help from './path/to/helpPost.js'
+import Help from '../Model/helpPost.js';
 
 export const getStaff = (req,res) => {
     try{
-        const staffs = User.find({ usertype: 'maintenance'}).lean();
+        const staffs = User.find({ usertype: 'maintenance other'}).lean();
         return staffs
     } catch(error){
         console.log(error)
@@ -21,10 +21,11 @@ export const createHelpPost = async (req,res) => {
          if (!user) { 
             throw new Error("User not found"); 
         }  
-        const helpPost = await Help.create({ description, user: userId });
+        const helpPost = await Help.create({ description: help_descr, user: userId });
         console.log('Help Post Created:', helpPost); 
         return res.status(201).json({
             msg : "Post Created Successfully!",
+            data: helpPost,
             redirectUrl : "/society/homepage/:id/wall"
         })
     } catch (error) { 
@@ -36,7 +37,7 @@ export const createHelpPost = async (req,res) => {
 export const getPosts = async(req,res) => {
     try{
         const userId = req.userId;
-        const posts = await Help.find({resolve_status : false }).sort({ timestamp: -1 }) 
+        const posts = await Help.find({resolve_status : false }).sort({ createdAt: -1 }) 
         .populate('createdBy', 'name email').lean();
         if (!posts){
             return res.status(400).json({error : "No Posts Available"});
@@ -49,9 +50,9 @@ export const getPosts = async(req,res) => {
 
 export const getSinglePost = async (req, res) => {
     try {
-      const userId = req.userId; // From middleware
-      const { postId } = req.params; // Get the specific post ID from the URL
-      const helpPost = await Help.findById(postId).populate('comments.user', 'username').lean(); // Fetch the post, populate comments' user data
+      const userId = req.userId;    // From middleware
+      const { postId } = req.params;    // Get the specific post ID from the URL
+      const helpPost = await Help.findById(postId).populate('comments.username', 'username').lean(); 
       
       if (!helpPost) {
         return res.status(404).json({ error: 'Help post not found' });
@@ -67,36 +68,36 @@ export const getSinglePost = async (req, res) => {
 
 export const resolveHelpPost = async (req, res) => { 
     try { 
-        const helpPostId = req.params.id; 
+        const helpPostId = req.params.postId; 
         const helpPost = await Help.findById(helpPostId); 
         const userId = req.userId;
+        const {resolve} = req.body
         if (!helpPost) { 
             return res.status(404).json({ error: 'Help post not found' }); 
         }
-        if (helpPost.resolve_status.resolved) {
+        if (helpPost.resolve_status) {
             return res.status(400).json({ error: 'Help post is already resolved' });
         }
         if (helpPost.user.toString() !== userId) {
             return res.status(403).json({ error: 'You are not authorized to resolve this post' });
         }
 
-        helpPost.resolve_status.resolved = true; 
+        helpPost.resolve_status = true; 
         await helpPost.save(); 
         return res.status(200).json({
             message: 'Help post resolved successfully',
-            resolvedPost: helpPost,
             redirectUrl: '/society/homepage/' + req.userId + '/wall',
         }); 
     } catch (error) { 
         console.error('Error resolving help post:', error); 
-        res.status(500).json({ error: 'Internal Server Error' });
+        return res.status(500).json({ error: 'Internal Server Error' });
     }
 };
 
 
 export const updateHelpPost = async (req, res) => {
     try {
-        const helpPostId = req.params.id;
+        const helpPostId = req.params.postId;
         const { description } = req.body;
         const userId = req.userId;
 
@@ -119,8 +120,8 @@ export const updateHelpPost = async (req, res) => {
 
         res.status(200).json({
             message: 'Help post updated successfully',
-            updatedPost: helpPost,
-            redirectUrl: '/society/homepage/' + req.userId + '/wall', // Construct redirect URL
+            data: helpPost,
+            redirectUrl: '/society/homepage/' + req.userId + '/wall', 
         });
     } catch (error) {
         console.error('Error updating help post:', error);
@@ -159,8 +160,8 @@ export const addCommentToHelpPost = async (req, res) => {
     try { 
         const { content } = req.body; 
         const userId = req.userId;  //req.body
-        const helpPostId = req.params.id;
-        const helpPost = await Help.findById(helpPostId).populate('comments.user', 'username');; 
+        const {helpPostId} = req.params;
+        const helpPost = await Help.findById(helpPostId).populate('comments.username', 'username');; 
         if (!helpPost) { 
             return res.status(404).json({ error: 'Help post not found' }); 
         }
@@ -174,7 +175,7 @@ export const addCommentToHelpPost = async (req, res) => {
 
         helpPost.comments.push(newComment); 
         await helpPost.save();
-        res.status(201).json(helpPost.comments);
+        return res.status(201).json(helpPost.comments);
     } catch (error) { 
         console.error('Error adding comment:', error); 
         res.status(500).json({ error: 'Internal Server Error' }); 

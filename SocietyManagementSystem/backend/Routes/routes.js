@@ -36,7 +36,7 @@ router.post("/login", async(req, res) => {
             return res.status(401).redirect('/society');
         }
         const id = user._id.toString();
-        res.status(201).redirect(`/society/homepage/:${id}`);
+        return res.status(201).redirect(`/society/homepage/:${id}`);
 
     } catch(error) {
         console.log(error);

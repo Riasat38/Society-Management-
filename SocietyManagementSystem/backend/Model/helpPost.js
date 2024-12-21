@@ -19,22 +19,28 @@ const commentSchema = new mongoose.Schema({
 //help post schema
 const helpSchema = new mongoose.Schema({
     description :{
-        type: String, required: true, trim: true
+        type: String, 
+        required: true, 
+        trim: true
     },
     user:{
-        type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true
+        type: mongoose.Schema.Types.ObjectId, 
+        ref: 'User', 
+        required: true
     },
-    timestamp: { type: Date, default: Date.now},
+    posdtedAt: { type: Date, default: Date.now},
     resolve_status:{
-        resolved: Boolean,
+        type: Boolean,
         default: false
     },
-    comments: [commentSchema]
-});
+    comments: [commentSchema],
+},
+{timestamps : true});
 
 helpSchema.pre('save', function (next) { 
-    if (this.resolve_status.resolved) { 
-        this.remove() .then(() => { 
+    if (this.resolve_status) { 
+        this.remove() 
+        .then(() => { 
             console.log('Help post and its comments have been deleted'); 
             next(); }) 
             .catch(error => next(error)); 

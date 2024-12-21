@@ -27,7 +27,9 @@ const userSchema = new mongoose.Schema({
         required: function () { 
             return this.usertype === "maintenance";
         },
-        default: null
+        default: null,
+        enum: ["Gatekeeper", "Plumber", "Electrician", "Caretaker", "Other"]
+
     },
     joiningDate: {
         type: Date,
@@ -45,7 +47,7 @@ const userSchema = new mongoose.Schema({
     }
 });
 
-// Ensure `joiningDate` is set before validation
+// Pre-validate hook to set joining date for maintenance staff
 userSchema.pre('validate', function (next) { 
     if (this.usertype === 'maintenance' && !this.joiningDate) { 
         this.joiningDate = new Date(); 
