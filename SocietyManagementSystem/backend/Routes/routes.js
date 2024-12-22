@@ -19,7 +19,7 @@ router.get("/about", (req,res) =>{
 
 //give us the login page
 router.get("/login", (req,res) => {
-    res.send("required a log in form")
+    res.send("required a log in form xD")
 });
 
 //log in form filled out

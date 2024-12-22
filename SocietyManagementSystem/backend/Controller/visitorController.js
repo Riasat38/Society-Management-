@@ -1,11 +1,11 @@
 `use strict`
 import Visitor from "../Model/visitorModel.js";
 import User from "../Model/userModel.js";
-
+import nodemailer from "nodemailer";
 export const postVisitorReq = async (req,res) => {
     try{
         const {delivery, deliveryType, expectedArrival, description } = req.body
-        const userId = req.userId;
+        const userId = req.params.id;
         let flag = false;
         if (!delivery || !expectedArrival){
             flag = true;
@@ -16,7 +16,7 @@ export const postVisitorReq = async (req,res) => {
         if (flag){
             return res.status(400).json({
                 message : 'Required Data Missing',
-                redirectUrl: '/society/homepage/' + req.userId + '/visitor'
+                redirectUrl: '/society/homepage/' + userId + '/visitor'
             })
         }
         const visitorData = {
@@ -37,12 +37,12 @@ export const postVisitorReq = async (req,res) => {
         return res.status(200).json({
             message : "RequestPosted",
             data : visitor,
-            redirectUrl : '/society/homepage/' + req.userId + '/visitor'
+            redirectUrl : '/society/homepage/' + userId + '/visitor'
         })
     } catch (error){
         return res.status(400).json({
             message : 'Required Data Missing'+error.message,
-            redirectUrl: '/society/homepage/' + req.userId + '/visitor'
+            redirectUrl: '/society/homepage/' + userId + '/visitor'
         })
     }   
 };
@@ -50,10 +50,10 @@ export const postVisitorReq = async (req,res) => {
 
 export const showVisitorReq = async (req,res) => {
     try{
-        const userId = req.userId;
+        const userId = req.params.id;
         const user = await User.findById(userId);
         if (user.usertype === "Gatekeep"){
-            const visitorQueue = Visitor.find({resolvestatus: false}).sort({ createdAt: 1 })
+            const visitorQueue = Visitor.find({resolvestatus: false, flatno: user.flatno}).sort({ createdAt: 1 })
             .populate({
                 path: 'User',
                 select: "username flatno"}).lean()
@@ -65,7 +65,7 @@ export const showVisitorReq = async (req,res) => {
     }catch (error){
         return res.status(500).json({
             message:'Error while fetching data' + error.message,
-            redirectUrl: '/society/homepage/' + req.userId + '/visitor'
+            redirectUrl: '/society/homepage/' + userId + '/visitor'
         })
     }  
 };
@@ -74,19 +74,19 @@ export const updateVisitorReq = async (req,res) => {
     try { 
         const { visitorId } = req.params; 
         const { delivery, deliveryType, expectedArrival, description } = req.body
-        const userId = req.userId;
+        const userId = req.params.id;
         const updatedVisitorData = {};
 
         const visitor = await Visitor.findById(visitorId);
         if (!visitor) {
             return res.status(404).json({
                 message: 'Visitor request not found',
-                redirectUrl: '/society/homepage/' + req.userId + '/visitor'
+                redirectUrl: '/society/homepage/' + userId + '/visitor'
             });
         }
         if (visitor.user.toString() !== userId) { 
             return res.status(403).json({ message: 'Unauthorized access', 
-                redirectUrl: '/society/homepage/' + req.userId + '/visitor' }); 
+                redirectUrl: '/society/homepage/' + userId + '/visitor' }); 
         }
 
         if (delivery) updatedVisitorData.delivery = delivery; 
@@ -96,35 +96,35 @@ export const updateVisitorReq = async (req,res) => {
         const updatedVisitor = await Visitor.findByIdAndUpdate(visitorId, updatedVisitorData, { new: true });
         if (!updatedVisitor) { 
             return res.status(404).json({ message: 'Visitor request not found', 
-                redirectUrl: '/society/homepage/' + req.userId + '/visitor' }); 
+                redirectUrl: '/society/homepage/' + userId + '/visitor' }); 
         }
 
         return res.status(200).json({ message: 'Visitor request updated successfully', 
             data: updatedVisitor, 
-            redirectUrl: '/society/homepage/' + req.userId + '/visitor' });
+            redirectUrl: '/society/homepage/' + userId + '/visitor' });
     }catch (error) { 
         return res.status(500)
         .json({ message: 'Error updating visitor request: ' + error.message, 
-            redirectUrl: '/society/homepage/' + req.userId + '/visitor' }); }
+            redirectUrl: '/society/homepage/' + userId + '/visitor' }); }
 };
 
 export const deleteVisitorReq = async (req, res) => {
     try {
         const { visitorId } = req.params;
-        const userId = req.userId;  // Assuming you have a middleware to set req.userId
+        const userId = req.params.id;  // Assuming you have a middleware to set req.userId
         const visitor = await Visitor.findById(visitorId);
 
         if (!visitor) {
             return res.status(404).json({
                 message: 'Visitor request not found',
-                redirectUrl: '/society/homepage/' + req.userId + '/visitor'
+                redirectUrl: '/society/homepage/' + userId + '/visitor'
             });
         }
 
         if (visitor.user.toString() !== userId) {
             return res.status(403).json({
                 message: 'Unauthorized access',
-                redirectUrl: '/society/homepage/' + req.userId + '/visitor'
+                redirectUrl: '/society/homepage/' + userId + '/visitor'
             });
         }
 
@@ -132,12 +132,12 @@ export const deleteVisitorReq = async (req, res) => {
 
         return res.status(200).json({
             message: 'Visitor request deleted successfully',
-            redirectUrl: '/society/homepage/' + req.userId + '/visitor'
+            redirectUrl: '/society/homepage/' +userId + '/visitor'
         });
     } catch (error) {
         return res.status(500).json({
             message: 'Error deleting visitor request: ' + error.message,
-            redirectUrl: '/society/homepage/' + req.userId + '/visitor'
+            redirectUrl: '/society/homepage/' + userId + '/visitor'
         });
     }
 };
@@ -145,37 +145,37 @@ export const deleteVisitorReq = async (req, res) => {
 export const resolveVisitorReq = async (req, res) => {
     try {
         const { visitorId } = req.params;
-        const userId = req.userId;  
+        const userId = req.params.id;  
         const visitor = await Visitor.findById(visitorId);
         const user = User.find(userId)
         if (!visitor) {
             return res.status(404).json({
                 message: 'Visitor request not found',
-                redirectUrl: '/society/homepage/' + req.userId + '/visitor'
+                redirectUrl: '/society/homepage/' + userId + '/visitor'
             });
         }
-        if (user.usertype !== "Gatekeeper"){
+        if (user.role !== "Gatekeeper" || user.usertype !== "maintenance") {
             return res.status(403).json({
                 message: 'Unauthorized access',
-                redirectUrl: '/society/homepage/' + req.userId + '/visitor'
+                redirectUrl: '/society/homepage/' + userId + '/visitor'
             });
         }
-        if (visitor.resolvestatus){
+        if (visitor.resolve_status){
             return res.status(400).json({
                 message: 'Visitor request already resolved',
                 redirectUrl: '/society/homepage/' + req.userId + '/visitor'
             });
         }
-        visitor.resolvestatus = true;
+        visitor.resolve_status = true;
         await visitor.save();
         return res.status(200).json({
             message: 'Visitor request resolved successfully',
-            redirectUrl: '/society/homepage/' + req.userId + '/visitor'
+            redirectUrl: '/society/homepage/' + userId + '/visitor'
         });
     } catch (error) {
         return res.status(500).json({
             message: 'Error resolving visitor request: ' + error.message,
-            redirectUrl: '/society/homepage/' + req.userId + '/visitor'
+            redirectUrl: '/society/homepage/' + userId + '/visitor'
         });
     }
 };

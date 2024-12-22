@@ -25,7 +25,7 @@ const visitorSchema = new mongoose.Schema({
         type: String,
         required: false 
     }, 
-    resolvestatus:{
+    resolve_status:{
         type: Boolean,
         default: false
     }

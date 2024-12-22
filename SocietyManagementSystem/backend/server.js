@@ -12,7 +12,7 @@ import adminRouter from "./Routes/adminRoutes.js";
 //middlewares
 import ensureAuthenticated from './Middleware/loggedIn.js';
 import ensureAdmin from './Middleware/admincheck.js';
-import addUserIdToUrl from './Middleware/urlencoder.js';
+
 //config
 import { fileURLToPath } from 'url';
 import session from 'express-session';
@@ -38,8 +38,8 @@ app.use(passport.session());
 
 app.use("/society",routes); //initial and handlinng login
 
-app.use("/society/homepage", ensureAuthenticated, addUserIdToUrl, homeRoutes);
-app.use("/society/adminPanel/",ensureAuthenticated, ensureAdmin, addUserIdToUrl, adminRouter);
+app.use("/society/homepage", homeRoutes);
+app.use("/society/adminPanel",ensureAuthenticated, ensureAdmin, adminRouter);
 
 
 
