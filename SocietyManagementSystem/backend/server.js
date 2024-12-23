@@ -1,7 +1,7 @@
 `use strict`;
 
 import dotenv from 'dotenv';
-
+import cors from 'cors';
 import express from "express";
 import path from "path";
 import passport from './config/auth.js';
@@ -23,6 +23,13 @@ dotenv.config()
 
 const port =  process.env.PORT || 4069;
 const app = express();
+
+app.use(cors({ 
+  origin: 'http://localhost:3000', // Replace with your frontend's domain 
+  methods: 'GET,POST,PUT,DELETE', // Allowable methods 
+  allowedHeaders: 'Content-Type,Authorization', // Allowable headers 
+  credentials: true  
+}));
 
 app.use(session({
     secret: 'your-secret-key',  // Set a secret key for session encryption
