@@ -1,5 +1,7 @@
 `use strict`
 
+import bloodDonation from "../Model/bloodDonationModel.js";
+import bloodDonation from "../Model/bloodDonationModel.js";
 import User from "../Model/userModel.js";
 import Help from './path/to/helpPost.js'
 
@@ -33,4 +35,38 @@ export const getPosts = async(req,res) => {
     return posts;  
     
 };
+//bloodDonation
 
+export const addBloodDonation = async (req, res) => {
+    try {
+        const { donorName, donorContact, bloodGroup, donationDate } = req.body;
+
+        // Validation
+        if (!donorName || !donorContact || !bloodGroup) {
+            return res.status(400).json({ error: "Missing required fields" });
+        }
+
+        const bloodDonate= await bloodDonation.create({
+            donorName,
+            donorContact,
+            bloodGroup,
+            donationDate,
+        });
+
+        console.log('Blood Donation Record Created:', bloodDonate);
+        res.status(201).json({ message: "Blood donation record added successfully", bloodDonate });
+    } catch (error) {
+        console.error('Error adding blood donation record:', error);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+};
+
+export const getBloodDonations = async (req, res) => {
+    try {
+        const donations = await bloodDonation.find();
+        res.status(200).json(donations);
+    } catch (error) {
+        console.error('Error fetching blood donation records:', error);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+};

@@ -5,7 +5,7 @@ import express from "express";
 import passport from "passport";
 import User from "../Model/userModel.js";
 const router = express.Router();
-import {getStaff,createHelpPost,getPosts} from "../Controller/homePageController.js";
+import {getStaff,createHelpPost,getPosts, getBloodDonations, addBloodDonation} from "../Controller/homePageController.js";
 import ensureAdmin from './Middleware/admincheck.js'
 import addUserIdToUrl from "../Middleware/urlencoder.js";
 
@@ -78,4 +78,8 @@ router.post('/:id/wall', (req,res) => {
         res.status(400).json(error)
     }
 });
+//bloodDonation
+router.get('/:id/blood-donation',getBloodDonations );
+router.post('/:id/blood-donation', addBloodDonation);
+
 export default router;
