@@ -1,52 +1,99 @@
 `use strict`
 //this file handles log in and signup related funtions
 import User from "../Model/userModel.js";
+import jwt from "jsonwebtoken";
+import bcrypt from "bcrypt";
+import dotenv from "dotenv";
+dotenv.config();
 
-export const getUser = (email) => {
-    const user =  User.findOne({email: email})
-    //console.log(email,"getuser"); //test passed
-      return user   //return null if user not found
-};
+const generateToken = (id) => {
+    return jwt.sign({ id }, process.env.JWT_SECRET, {
+      expiresIn: "30d",
+    })
+}
 
-export const createUser = async (username, email, flatno, usertype, contactno, role) => {
+export const getUser = async(req, res) => {
+    
+    const { username,email,password } = await req.body || {}; 
+    //console.log(email,flatno,"route"); //test passed
     try {
-      if (!username || !email  || !usertype || !contactno) {
-        throw new Error("Some required fields are missing");
+        if (!username || !email || !password ) {
+            return res.status(400).json({ message: 'Invalid data' });
+        }
+        const user =  await User.findOne({username:username, email:email});
+        console.log(user);
+        if (!user ){
+          return res.status(401).json({message: 'Invalid credentials',
+              redirectUrl: '/society/login'});
+      }else{
+        const id = user._id.toString();
+        if (user && await(bcrypt.compare(password, user.password))) {
+          
+        return res.status(200).json({ message: 'Logged In',
+          name: user.name,
+          email: user.email,
+          token: generateToken(user._id),
+          redirectUrl: `/society/homepage/${id}` });
+        }
+        
       }
-      const existingUser = await User.findOne({ email });
-      if (existingUser) {
-          throw new Error(`${email} already exists`);
-      }
-      if (usertype === "maintenance" && !role) {
-        throw new Error("Role is required for maintenance users");
-      } else if (usertype === "resident" && !flatno) {
-        throw new Error("FlatNO is required for for resident users");
-      }
-  
-      const userData = {
+    } catch(error){
+        console.error("Error in /loginPage:", error.message);
+        res.status(400).json({ error: error.message,
+            redirectUrl: '/society/login' });
+    }   
+};
+    
+
+
+export const registerUser = async (req,res) => {
+  try{
+    const {name,username,email,password,flatno,usertype,contactno,role} = req.body || {};
+    console.log(username,email,flatno,usertype,contactno,role); //test passed
+
+    if (!email || !username || !password || !name || !usertype || !contactno) {
+        throw new Error(`fields missing from url missing`); 
+    };
+
+    if (usertype === "maintenance" && !role) {
+        return res.status(400).json({ error: "Role is required for maintenance users" });
+    } else if (usertype === "resident" && !flatno) {
+        return res.status(400).json({ error: "FlatNo is required for resident users" });
+     }
+    const existingUser = await User.findOne({ $or: [{email:email}, 
+      {username:username}] });
+    if (existingUser) {
+        res.status(400)
+        throw new Error(`${username} with${email} already exists`);
+    }
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    const userData = {
+        name,
         username,
         email,
+        password:hashedPassword,
         flatno,
         usertype,
         contactno,
+        role: usertype === "maintenance" ? role : undefined, 
+        admin: (await User.countDocuments()) === 0,
       };
-  
-      if (usertype === "maintenance") {
-        userData.role = role;
-      }
-      const userCount = await User.countDocuments();
-      if (userCount === 0 ){
-        userData.admin = true;
-      }
-  
-      // Create user document in the database
-      const user = await User.create(userData);
-      console.log("User created:", user);
-      return user;
-    } 
-    catch (error) {
-      console.error("Error creating user:", error.message);
-      throw error;
+    const user = await User.create(userData);
+    const id = verifiedUser._id.toString();
+    if (user) {
+      res.status(201).json({
+        name: user.name,
+        email: user.email,
+        token: generateToken(user._id),
+        redirectUrl:`/society/homepage/${(id)}`
+      })
     }
-  };
+  }catch(error) {
+    console.error("Error in /registerPage:", error.message);
+    res.status(400).json({ error: error.message,
+        redirectUrl: '/society/register' });
+};
   
+};

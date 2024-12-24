@@ -16,7 +16,7 @@ export const getStaff = async (req,res) => {
 export const createHelpPost = async (req,res) => {
      try {
         const {help_descr} = req.body;
-        const userId = req.params.id;
+        const userId = req.user.id;
         const user = await User.findById(userId); 
          if (!user) { 
             throw new Error("User not found"); 
@@ -41,7 +41,7 @@ export const createHelpPost = async (req,res) => {
 
 export const getPosts = async(req,res) => {
     try{
-        const userId = req.params.id;
+        const userId = req.user.id;
         const posts = await Help.find({resolve_status : false }).sort({ createdAt: -1 }) 
         .populate('user','name email').lean();
         if (!posts){
@@ -55,7 +55,7 @@ export const getPosts = async(req,res) => {
 
 export const getSinglePost = async (req, res) => {
     try {
-      const userId = req.params.id;    // From middleware
+      const userId = req.user.id;    // From middleware
       const { postId } = req.params;    // Get the specific post ID from the URL
       const helpPost = await Help.findById(postId).populate('comments.user', 'username').lean(); 
       
@@ -75,7 +75,7 @@ export const resolveHelpPost = async (req, res) => {
     try { 
         const helpPostId = req.params.postId; 
         const helpPost = await Help.findById(helpPostId); 
-        const userId = req.params.id;
+        const userId = req.user.id;
         const {resolve} = req.body
         if (!helpPost) { 
             return res.status(404).json({ error: 'Help post not found' }); 
@@ -104,7 +104,7 @@ export const updateHelpPost = async (req, res) => {
     try {
         const helpPostId = req.params.postId;
         const { description } = req.body;
-        const userId = req.params.id;
+        const userId = req.user.id;
 
         const helpPost = await Help.findById(helpPostId);
         if (!helpPost) {
@@ -137,7 +137,7 @@ export const updateHelpPost = async (req, res) => {
 export const deleteHelpPost = async (req, res) => {
     try {
         const helpPostId = req.params.postId;
-        const userId = req.params.id;
+        const userId = req.user.id;
 
         const helpPost = await Help.findById(helpPostId);
         if (!helpPost) {
@@ -164,7 +164,7 @@ export const deleteHelpPost = async (req, res) => {
 export const addCommentToHelpPost = async (req, res) => { 
     try { 
         const { content } = req.body; 
-        const userId = req.params.id;  //req.body
+        const userId = req.user.id;  //req.body
         const {helpPostId} = req.params;
         const helpPost = await Help.findById(helpPostId).populate('comments.user', 'username');; 
         if (!helpPost) { 
@@ -191,7 +191,7 @@ export const updateComment = async (req, res) => {
     try {
         const { helpPostId, commentId } = req.params;
         const { content } = req.body;
-        const userId = req.params.id;
+        const userId = req.user.id;
 
         const helpPost = await Help.findById(helpPostId);
         if (!helpPost) {
@@ -223,7 +223,7 @@ export const updateComment = async (req, res) => {
 export const deleteComment = async (req, res) => {
     try {
         const { helpPostId, commentId } = req.params;
-        const userId = req.params.id;
+        const userId = req.user.id;
 
         const helpPost = await Help.findById(helpPostId);
         if (!helpPost) {

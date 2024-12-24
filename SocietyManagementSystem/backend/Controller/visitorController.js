@@ -1,7 +1,7 @@
 `use strict`
-import Visitor from "../Model/visitorModel.js";
+import {Visitor,GuestVis} from "../Model/visitorModel.js";
 import User from "../Model/userModel.js";
-import nodemailer from "nodemailer";
+import { sendNotification } from "../config/mailer.js";
 export const postVisitorReq = async (req,res) => {
     try{
         const {delivery, deliveryType, expectedArrival, description } = req.body
@@ -146,9 +146,9 @@ export const resolveVisitorReq = async (req, res) => {
     try {
         const { visitorId } = req.params;
         const userId = req.params.id;  
-        const visitor = await Visitor.findById(visitorId);
+        const visitor = await Visitor.findById(visitorId).populate('user', 'email username');
         const user = User.find(userId)
-        if (!visitor) {
+        if (!visitor_obj) {
             return res.status(404).json({
                 message: 'Visitor request not found',
                 redirectUrl: '/society/homepage/' + userId + '/visitor'
@@ -168,6 +168,18 @@ export const resolveVisitorReq = async (req, res) => {
         }
         visitor.resolve_status = true;
         await visitor.save();
+
+        const requester_email = visitor.user.email;
+        const requester = visitor.user.username;
+        
+        const resolver = user.username;
+        if (visitor.delivery) {
+            const message = `Your expected delivery ${visitor.deliveryType} has arrived`;
+        }else{
+            const message = `Your expected visitor has arrived`
+        }
+        ;
+        await sendNotification(requester_email, resolver, message);
         return res.status(200).json({
             message: 'Visitor request resolved successfully',
             redirectUrl: '/society/homepage/' + userId + '/visitor'
@@ -180,3 +192,24 @@ export const resolveVisitorReq = async (req, res) => {
     }
 };
 
+export const visitorNotify = async (req, res) => {
+    const userId = req.params.id;
+    const user = await User.findById(userId);
+    const {to_whom, name, phone, flatno, purpose} = req.body;
+
+    if (!name || !phone || !purpose) {
+        return res.status(400).json({
+            message: 'Required data missing',
+            redirectUrl: '/society/homepage/' + userId + '/visitor'
+        });
+    }
+    const temp = await User.find({ usernmae: to_whom  })
+    .populate('user','flatno').lean();
+    let destination;
+    for(let obj in temp){
+        if (obj.flatno === flatno){
+            destination = obj;
+        }
+    }
+    
+};

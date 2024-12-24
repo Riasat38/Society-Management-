@@ -1,7 +1,7 @@
 `use strict`;
 //this file handles log in and signup related routes 
 import express from "express";
-import {getUser,createUser} from "../Controller/controller.js";
+import {getUser,registerUser} from "../Controller/controller.js";
 import passport from "passport";
 import User from "../Model/userModel.js";
 
@@ -17,32 +17,13 @@ router.get("/about", (req,res) =>{
 });
 
 
-//give us the login page
-router.get("/login", (req,res) => {
-    res.send("required a log in form xD")
-});
+
 
 //log in form filled out
-router.post("/login", async(req, res) => {
+router.post("/login",getUser) 
      
-    const { email,flatno } = await req.body || {}; 
-    //console.log(email,flatno,"route"); //test passed
-    try {
-        if (!email || !flatno) {
-            return res.status(400).json({ msg: 'Bad request: no email or flatNo found' });
-        } 
-        const user = await getUser(email);
-        if (user === null){
-            return res.status(401).redirect('/society');
-        }
-        const id = user._id.toString();
-        return res.status(201).redirect(`/society/homepage/:${id}`);
+    
 
-    } catch(error) {
-        console.log(error);
-        return res.status(500).json({ msg: 'Server error' });
-    }
-});
 
 router.get("/logout", (req, res) => {
     req.logout((err) => {
@@ -78,7 +59,9 @@ router.get(
         
         const { name,email } = req.user; // Access the email and display name from the user object
 
-        res.redirect(`/society/registerPage?name=${encodeURIComponent(name)}&email=${encodeURIComponent(email)}`);
+        res.json({ 
+            message: `authentication successful`,
+            redirectUrl:`/society/registerPage?name=${encodeURIComponent(name)}&email=${encodeURIComponent(email)}`});
     }
 );
   
@@ -93,39 +76,11 @@ router.get('/registerPage', (req, res) => {
     console.log(name,email,"protected");
 
     const queryData = JSON.stringify({ message: 'Welcome to the registerPage!',name, email });
-    res.json({username : name, email: email});
+    res.json({name : name, email: email});
 
 });
 
 //Processing register formm and creating an user
-router.post("/registerPage", (req,res) => {
-    
-    const {username,email,flatno,usertype,contactno,role} = req.body || {};
-    //console.log(username,email,flatno,usertype,contactno,role); //test passed
-
-    if (!email || !username) {
-        throw new Error(`fields missing from url missing`); 
-    };
-
-    if (usertype === "maintenance" && !role) {
-        return res.status(400).json({ error: "Role is required for maintenance users" });
-    } else if (usertype === "resident" && !flatno) {
-        return res.status(400).json({ error: "FlatNo is required for resident users" });
-     }
-    
-    const verifiedUser = createUser(username,email,flatno,usertype,contactno,role)
-    .then((verifiedUser) => {
-        console.log("Verified User:", verifiedUser._id.toString()); // Log the created user data // json data user returned from db //test Passed
-        const id = verifiedUser._id.toString();
-        // Redirect to the homepage after successful registration
-        res.status(201).redirect(`/society/homepage/${(id)}`);
-    })
-    .catch((error) => {
-        console.error("Error in /registerPage:", error.message);
-        res.status(500).json({ error: error.message });
-    });
-  
-});
-
+router.post("/registerPage", registerUser) 
 
 export default router; 

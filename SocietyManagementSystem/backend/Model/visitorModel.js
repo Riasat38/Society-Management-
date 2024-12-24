@@ -32,4 +32,31 @@ const visitorSchema = new mongoose.Schema({
 },
 {timestamps : true});
 
-export default mongoose.model("Visitor", visitorSchema);
+const guestVisitorSchema = new mongoose.Schema({
+    destination:{
+        type: mongoose.Schema.Types.ObjectId, 
+        ref: 'User',
+        required: true 
+    },
+    visitor_name:{
+        type: String,
+        required: true
+    },
+    phone:{
+        type: String,
+        required: true
+    },
+    flatno:{
+        type: String,
+        required: false
+    },
+    purpose:{
+        type: String,
+        required: true
+    },   
+});
+
+const GuestVis= mongoose.model("GuestVis", guestVisitorSchema);
+const Visitor= mongoose.model("Visitor", visitorSchema);
+
+export { Visitor, GuestVis };

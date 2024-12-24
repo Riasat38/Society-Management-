@@ -12,7 +12,7 @@ import adminRouter from "./Routes/adminRoutes.js";
 //middlewares
 import ensureAuthenticated from './Middleware/loggedIn.js';
 import ensureAdmin from './Middleware/admincheck.js';
-
+import authorizedUser from './Middleware/protect.js';
 //config
 import { fileURLToPath } from 'url';
 import session from 'express-session';
@@ -24,10 +24,17 @@ dotenv.config()
 const port =  process.env.PORT || 4069;
 const app = express();
 
+app.use((req, res, next) => {
+  console.log('Incoming request to:', req.path);
+  console.log('Request method:', req.method);
+  console.log('Origin:', req.headers.origin);
+  next();
+});
+
 app.use(cors({ 
-  origin: 'http://localhost:3000', // Replace with your frontend's domain 
-  methods: 'GET,POST,PUT,DELETE', // Allowable methods 
-  allowedHeaders: 'Content-Type,Authorization', // Allowable headers 
+  origin: 'http://localhost:3000', 
+  methods: 'GET,POST,PUT,DELETE',  
+  allowedHeaders: 'Content-Type,Authorization', 
   credentials: true  
 }));
 
@@ -45,8 +52,8 @@ app.use(passport.session());
 
 app.use("/society",routes); //initial and handlinng login
 
-app.use("/society/homepage", homeRoutes);
-app.use("/society/adminPanel",ensureAuthenticated, ensureAdmin, adminRouter);
+app.use("/society/homepage",authorizedUser, homeRoutes);
+app.use("/society/adminPanel", ensureAdmin, adminRouter);
 
 
 
