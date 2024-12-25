@@ -10,7 +10,6 @@ import routes from "./Routes/routes.js";
 import homeRoutes from "./Routes/homePageRoutes.js";
 import adminRouter from "./Routes/adminRoutes.js";
 //middlewares
-import ensureAuthenticated from './Middleware/loggedIn.js';
 import ensureAdmin from './Middleware/admincheck.js';
 import authorizedUser from './Middleware/protect.js';
 //config
@@ -24,6 +23,7 @@ dotenv.config()
 const port =  process.env.PORT || 4069;
 const app = express();
 
+//middleware to check HTTP request type and origin
 app.use((req, res, next) => {
   console.log('Incoming request to:', req.path);
   console.log('Request method:', req.method);
@@ -52,9 +52,7 @@ app.use(passport.session());
 app.use("/society",routes); //initial and handlinng login
 
 app.use("/society/homepage",authorizedUser, homeRoutes);
-app.use("/society/adminPanel", ensureAdmin, adminRouter);
-
-
+app.use("/society/adminPanel",authorizedUser, ensureAdmin, adminRouter);
 
 
 app.listen(port,() => {
