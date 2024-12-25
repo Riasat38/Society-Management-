@@ -254,3 +254,20 @@ export const deleteComment = async (req, res) => {
         res.status(500).json({ error: 'Internal Server Error' });
     }
 };
+let flats_for_rent = [];
+export const postRent = async (req,res) => {
+    const userId = req.user.id;
+    const {rent_amount, availablefrom} = req.body;
+    try{
+        if (!rent_amount || !availablefrom){
+            return res.status(400).json({error : "Please provide all the details"});
+        }
+        flats_for_rent.push({userId,rent_amount, availablefrom});
+        res.status(200).json(flats_for_rent);
+    } catch(error){
+        res.status(500).json({error : error.message});
+    }
+};
+export const getALLrents = async (req,res) => {
+    return res.status(200).json(flats_for_rent);
+};

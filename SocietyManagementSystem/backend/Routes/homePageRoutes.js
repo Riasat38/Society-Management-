@@ -7,7 +7,7 @@ import User from "../Model/userModel.js";
 const router = express.Router();
 //controllers
 import {getStaff,createHelpPost,getPosts, getSinglePost, resolveHelpPost,
-    deleteHelpPost,addCommentToHelpPost, updateComment, deleteComment
+    deleteHelpPost,addCommentToHelpPost, updateComment, deleteComment, postRent
 } from "../Controller/homePageController.js";
 
 import { postVisitorReq, showVisitorReq, updateVisitorReq, 
@@ -53,9 +53,9 @@ router.get('/services', async (req, res) => {
     }
 });
 
-router.post('/:id/services/:serviceType', async (req, res) => {
+router.post('/services/:serviceType', async (req, res) => {
     const type = req.params.serviceType;
-    postServiceRequest(req, res);
+    postServiceRequest(req, res, type);
     if (type === 'Electrician'){
         res.status(200).send('Electrician Service');
     }
@@ -104,8 +104,8 @@ router.post('/visitor', async (req,res) => {
         visitorNotify(req, res);    //gatekeeper notifying users about people 
     }
 });
-router.delete('/visitor/:visitorId', deleteVisitorReq); 
-router.put('/visitor/:visitorId/:action',async(req,res) => {
+router.delete('/visitor/:visitorPostId', deleteVisitorReq); 
+router.put('/visitor/:visitorPostId/:action',async(req,res) => {
     const userId = req.params.id;
     const user = await User.findById(userId);
 
@@ -119,6 +119,7 @@ router.put('/visitor/:visitorId/:action',async(req,res) => {
     }
 });
 
+router.post('/rent-post', postRent);
 
 
 
