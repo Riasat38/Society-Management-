@@ -19,7 +19,7 @@ function validateGmail(email) {
   return emailPattern.test(email) && domain === 'gmail.com';
 };
 
-export const getUser = async(req, res) => {
+export const loginUser = async(req, res) => {
     
     const { username,email,password } = await req.body || {}; 
     //console.log(email,flatno,"route"); //test passed
@@ -109,7 +109,6 @@ export const registerUser = async (req,res) => {
 // Function to log out the user
 export const logoutUser = async (req, res) => {
   try {
-    
     const token = req.headers.authorization.split(' ')[1];
     Blacklisted_tokens.add(token);
  
@@ -125,8 +124,6 @@ export const logoutUser = async (req, res) => {
     });
   }
 };
-
-
 
 //route : "/recruitments", method : POST, viewer: admin
 let job_list = [];

@@ -76,7 +76,7 @@ export const showVisitorReq = async (req,res) => {
 // route : "/visitor/:visitorId", method : PUT, viewer: user
 export const updateVisitorReq = async (req,res) => {
     try { 
-        const { visitorId } = req.params; 
+        const { visitorPostId } = req.params; 
         const { delivery, deliveryType, expectedArrival, description } = req.body
         const userId = req.user.id;
         const updatedVisitorData = {};
@@ -115,7 +115,7 @@ export const updateVisitorReq = async (req,res) => {
 // route : "/visitor/:visitorId", method : DELETE, viewer: user
 export const deleteVisitorReq = async (req, res) => {
     try {
-        const { visitorId } = req.params;
+        const { visitorPostId } = req.params;
         const userId = req.user.id;  // Assuming you have a middleware to set req.userId
         const visitor = await Visitor.findById(visitorId);
 
@@ -137,19 +137,19 @@ export const deleteVisitorReq = async (req, res) => {
 
         return res.status(200).json({
             message: 'Visitor request deleted successfully',
-            redirectUrl: '/society/homepage/' +userId + '/visitor'
+            redirectUrl: '/society/homepage/visitor'
         });
     } catch (error) {
         return res.status(500).json({
             message: 'Error deleting visitor request: ' + error.message,
-            redirectUrl: '/society/homepage/' + userId + '/visitor'
+            redirectUrl: '/society/homepage/visitor'
         });
     }
 };
 // route : "/visitor/:visitorId", method : PUT, viewer: gatekeeper
 export const resolveVisitorReq = async (req, res) => {
     try {
-        const { visitorId } = req.params;
+        const { visitorPostId } = req.params;
         const destination = req.body.destination;
         const userId = req.user.id;  
         const visitor = await Visitor.findById(visitorId).populate('user', 'name email username');
