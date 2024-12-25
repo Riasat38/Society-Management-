@@ -30,8 +30,7 @@ export const getUser = async(req, res) => {
         if (user && await(bcrypt.compare(password, user.password))) {
           
         return res.status(200).json({ message: 'Logged In',
-          name: user.name,
-          email: user.email,
+          user,
           token: generateToken(user._id),
           redirectUrl: `/society/homepage/${id}` });
         }
@@ -84,8 +83,7 @@ export const registerUser = async (req,res) => {
     const id = verifiedUser._id.toString();
     if (user) {
       res.status(201).json({
-        name: user.name,
-        email: user.email,
+        user,
         token: generateToken(user._id),
         redirectUrl:`/society/homepage/${(id)}`
       })
