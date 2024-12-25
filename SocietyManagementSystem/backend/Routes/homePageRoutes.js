@@ -92,7 +92,8 @@ router.put('/wall/:helpPostId/comment/:commentId', updateComment)
 router.delete('/wall/:helpPostId/comment/:commentId', deleteComment)
 
 //requesting for a visitor to the gatekeep
-router.get('/visitor', showVisitorReq); //when visited the route visiting request will be shown grouped by flat.
+router.get('/visitor', showVisitorReq); 
+
 router.post('/visitor', async (req,res) => {
     const userId = req.params.id;
     const user = await User.findById(userId);
@@ -100,7 +101,7 @@ router.post('/visitor', async (req,res) => {
     if (user.usertype === 'resident') {
         postVisitorReq(req, res);
     } else if (user.usertype === 'maintenance' && user.role === 'Gatekeeper') {
-        visitorNotify(req, res);
+        visitorNotify(req, res);    //gatekeeper notifying users about people 
     }
 });
 router.delete('/visitor/:visitorId', deleteVisitorReq); 
