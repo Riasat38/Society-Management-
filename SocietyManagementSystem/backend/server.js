@@ -4,7 +4,7 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 import express from "express";
 import path from "path";
-import passport from './config/auth.js';
+
 //routes
 import routes from "./Routes/routes.js";
 import homeRoutes from "./Routes/homePageRoutes.js";
@@ -45,8 +45,7 @@ app.use(session({
   }));
 app.use(express.json());
 app.use(express.urlencoded({extended : true}));
-app.use(passport.initialize());
-app.use(passport.session());
+
 //routes
 
 app.use("/society",routes); //initial and handlinng login
