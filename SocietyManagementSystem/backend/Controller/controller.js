@@ -90,7 +90,7 @@ export const registerUser = async (req,res) => {
         admin: (await User.countDocuments()) === 0,
       };
     const user = await User.create(userData);
-    const id = verifiedUser._id.toString();
+    const id = user._id.toString();
     if (user) {
       res.status(201).json({
         user,
