@@ -19,7 +19,8 @@ const visitorSchema = new mongoose.Schema({
     }, 
     expectedArrival :{
         type: Date,
-        required: true
+        required: function(){
+            return this.user && this.user.usertype === 'resident';}  
     },
     description:{
         type: String,
@@ -27,36 +28,36 @@ const visitorSchema = new mongoose.Schema({
     }, 
     resolve_status:{
         type: Boolean,
-        default: false
-    }
-},
-{timestamps : true});
-
-const guestVisitorSchema = new mongoose.Schema({
+        default: false,
+        required: function(){
+            return this.user && this.user.usertype === 'resident'; 
+        }
+    }, 
+    guestname:{
+        type: String,
+        required: function(){
+            return this.user && this.user.usertype === 'gatekeeper';  
+        }
+    },
+    guests:{
+        type: Number,
+        required: function(){
+            return this.user && this.user.usertype === 'gatekeeper';  
+        }
+    },
     destination:{
-        type: mongoose.Schema.Types.ObjectId, 
-        ref: 'User',
-        required: true 
-    },
-    visitor_name:{
-        type: String,
-        required: true
-    },
-    phone:{
-        type: String,
-        required: true
-    },
-    flatno:{
         type: String,
         required: false
     },
-    purpose:{
-        type: String,
-        required: true
-    },   
-});
+    contact:{
+        type:String,
+        requied: function(){
+            return this.user && this.user.usertype === 'gatekeeper'; 
+        }
+    }
+},
+{timestamps : true})
 
-const GuestVis= mongoose.model("GuestVis", guestVisitorSchema);
-const Visitor= mongoose.model("Visitor", visitorSchema);
 
-export { Visitor, GuestVis };
+export default mongoose.model("Visitor", visitorSchema);
+

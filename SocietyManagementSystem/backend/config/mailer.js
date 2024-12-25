@@ -16,7 +16,7 @@ export const sendNotification = async (requester_email, resolverName, message) =
         from: process.env.EMAIL_USER, 
         to: requester_email,
         subject: 'Visitor Request Resolved',
-        text: `Dear User,\n\n${message}\n\nResolved by: ${resolverName} )`
+        text: `${message}\n\nResolved by: ${resolverName} )`
     };
 
     try {

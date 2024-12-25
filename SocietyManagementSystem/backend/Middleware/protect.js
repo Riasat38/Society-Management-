@@ -15,7 +15,7 @@ const authorizedUser = async (req,res,next) =>{
             next();
         } catch (error){
             console.error(error);
-            res.status(401);
+            res.status(401).redirect('/society/login');
             throw new Error('Not Authorized, Token Failed');
         }
     }
