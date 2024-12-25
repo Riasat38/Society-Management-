@@ -17,7 +17,6 @@ import { postVisitorReq, showVisitorReq, updateVisitorReq,
 import {getAllAnnouncements} from "../Controller/announcementController.js";
 
 
-
 //HomePage  router
 router.get("/",async (req,res) =>{ 
     const userId = req.user.id;
@@ -41,7 +40,7 @@ router.get('/staff', async (req,res) => {
 
 
 // Services route
-router.get('/:id/services/', async (req, res) => {
+router.get('/services', async (req, res) => {
     const userId = req.params.id;
     try {
         const user = await User.findById(userId);
@@ -93,8 +92,8 @@ router.put('/wall/:helpPostId/comment/:commentId', updateComment)
 router.delete('/wall/:helpPostId/comment/:commentId', deleteComment)
 
 //requesting for a visitor to the gatekeep
-router.get('/:id/visitor', showVisitorReq); //when visited the route visiting request will be shown grouped by flat.
-router.post('/:id/visitor', async (req,res) => {
+router.get('/visitor', showVisitorReq); //when visited the route visiting request will be shown grouped by flat.
+router.post('/visitor', async (req,res) => {
     const userId = req.params.id;
     const user = await User.findById(userId);
     const { action } = req.params;
@@ -104,8 +103,8 @@ router.post('/:id/visitor', async (req,res) => {
         visitorNotify(req, res);
     }
 });
-router.delete('/:id/visitor/:visitorId', deleteVisitorReq); 
-router.put('/:id/visitor/:visitorId/:action',async(req,res) => {
+router.delete('/visitor/:visitorId', deleteVisitorReq); 
+router.put('/visitor/:visitorId/:action',async(req,res) => {
     const userId = req.params.id;
     const user = await User.findById(userId);
 

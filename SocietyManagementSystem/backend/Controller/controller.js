@@ -32,7 +32,7 @@ export const getUser = async(req, res) => {
         return res.status(200).json({ message: 'Logged In',
           user,
           token: generateToken(user._id),
-          redirectUrl: `/society/homepage/${id}` });
+          redirectUrl: `/society/homepage` });
         }
         
       }

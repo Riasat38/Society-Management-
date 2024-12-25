@@ -31,7 +31,7 @@ export const createHelpPost = async (req,res) => {
         return res.status(201).json({
             msg : "Post Created Successfully!",
             data: helpPost,
-            redirectUrl : "/society/homepage/"+ userId+"/wall"
+            redirectUrl : "/society/homepage/wall"
         })
     } catch (error) { 
         console.error('Error creating help post:', error);
@@ -57,7 +57,7 @@ export const getSinglePost = async (req, res) => {
     try {
       const userId = req.user.id;    // From middleware
       const { postId } = req.params;    // Get the specific post ID from the URL
-      const helpPost = await Help.findById(postId).populate('comments.user', 'username').lean(); 
+      const helpPost = await Help.findById(postId).populate('comments.user', 'name username').lean(); 
       
       if (!helpPost) {
         return res.status(404).json({ error: 'Help post not found' });
@@ -91,7 +91,7 @@ export const resolveHelpPost = async (req, res) => {
         await helpPost.save(); 
         return res.status(200).json({
             message: 'Help post resolved successfully',
-            redirectUrl: '/society/homepage/' + req.userId + '/wall',
+            redirectUrl: '/society/homepage/wall',
         }); 
     } catch (error) { 
         console.error('Error resolving help post:', error); 
@@ -126,7 +126,7 @@ export const updateHelpPost = async (req, res) => {
         res.status(200).json({
             message: 'Help post updated successfully',
             data: helpPost,
-            redirectUrl: '/society/homepage/' + userId + '/wall', 
+            redirectUrl: `/society/homepage/wall/${helpPostId}`, 
         });
     } catch (error) {
         console.error('Error updating help post:', error);
@@ -152,7 +152,7 @@ export const deleteHelpPost = async (req, res) => {
 
         res.status(302).json({
             message: 'Help post deleted successfully',
-            redirectUrl: '/society/homepage/' + req.userId + '/wall',
+            redirectUrl: '/society/homepage/wall',
         });
     } catch (error) {
         console.error('Error deleting help post:', error);
@@ -166,7 +166,7 @@ export const addCommentToHelpPost = async (req, res) => {
         const { content } = req.body; 
         const userId = req.user.id;  //req.body
         const {helpPostId} = req.params;
-        const helpPost = await Help.findById(helpPostId).populate('comments.user', 'username');; 
+        const helpPost = await Help.findById(helpPostId).populate('comments.user', 'name username');; 
         if (!helpPost) { 
             return res.status(404).json({ error: 'Help post not found' }); 
         }
@@ -180,7 +180,10 @@ export const addCommentToHelpPost = async (req, res) => {
 
         helpPost.comments.push(newComment); 
         await helpPost.save();
-        return res.status(201).json(helpPost.comments);
+        return res.status(201).json({
+            comments:helpPost.comments,
+            redirectUrl: `/society/homepage/wall/${helpPostId}`
+        });
     } catch (error) { 
         console.error('Error adding comment:', error); 
         res.status(500).json({ error: 'Internal Server Error' }); 
