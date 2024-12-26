@@ -69,48 +69,18 @@ export const getSinglePost = async (req, res) => {
       return res.status(500).json({ error: 'Internal Server Error' });
     }
 };
-  
-
-export const resolveHelpPost = async (req, res) => { 
-    try { 
-        const helpPostId = req.params.postId; 
-        const helpPost = await Help.findById(helpPostId); 
-        const userId = req.user.id;
-        const {resolve} = req.body
-        if (!helpPost) { 
-            return res.status(404).json({ error: 'Help post not found' }); 
-        }
-        if (helpPost.resolve_status) {
-            return res.status(400).json({ error: 'Help post is already resolved' });
-        }
-        if (helpPost.user.toString() !== userId) {
-            return res.status(403).json({ error: 'You are not authorized to resolve this post' });
-        }
-
-        helpPost.resolve_status = true; 
-        await helpPost.save(); 
-        return res.status(200).json({
-            message: 'Help post resolved successfully',
-            redirectUrl: '/society/homepage/wall',
-        }); 
-    } catch (error) { 
-        console.error('Error resolving help post:', error); 
-        return res.status(500).json({ error: 'Internal Server Error' });
-    }
-};
 
 
-export const updateHelpPost = async (req, res) => {
+export const updateORresolveHelpPost = async (req, res) => {
     try {
         const helpPostId = req.params.postId;
-        const { description } = req.body;
+        const { description,resolve } = req.body;
         const userId = req.user.id;
 
         const helpPost = await Help.findById(helpPostId);
         if (!helpPost) {
             return res.status(404).json({ error: 'Help post not found' });
         }
-
         if (helpPost.user.toString() !== userId) {
             return res.status(403).json({ error: 'You are not authorized to update this post' });
         }
@@ -121,6 +91,7 @@ export const updateHelpPost = async (req, res) => {
             return res.status(400).json({ error: 'Cannot update a resolved post' });
         }
         helpPost.description = description;
+        helpPost.resolve_status = resolve
         await helpPost.save();
 
         res.status(200).json({
@@ -138,19 +109,17 @@ export const deleteHelpPost = async (req, res) => {
     try {
         const helpPostId = req.params.postId;
         const userId = req.user.id;
+        const user = await User.findById(userId);
 
         const helpPost = await Help.findById(helpPostId);
         if (!helpPost) {
             return res.status(404).json({ error: 'Help post not found' });
         }
-
-        if (helpPost.user.toString() !== userId) {
+        if (helpPost.user.toString() !== userId && !user.admin) { //admin can only delete a post
             return res.status(403).json({ error: 'You are not authorized to delete this post' });
         }
-
         await helpPost.remove();
-
-        res.status(302).json({
+        return res.status(302).json({
             message: 'Help post deleted successfully',
             redirectUrl: '/society/homepage/wall',
         });
@@ -209,7 +178,6 @@ export const updateComment = async (req, res) => {
         if (comment.user.toString() !== userId) {
             return res.status(403).json({ error: 'You are not authorized to update this comment' });
         }
-
         comment.content = content;
         await helpPost.save();
 
@@ -227,7 +195,7 @@ export const deleteComment = async (req, res) => {
     try {
         const { helpPostId, commentId } = req.params;
         const userId = req.user.id;
-
+        const user = await User.findById(userId);
         const helpPost = await Help.findById(helpPostId);
         if (!helpPost) {
             return res.status(404).json({ error: 'Help post not found' });
@@ -238,7 +206,7 @@ export const deleteComment = async (req, res) => {
             return res.status(404).json({ error: 'Comment not found' });
         }
 
-        if (comment.user.toString() !== userId) {
+        if (comment.user.toString() !== userId && !user.admin) { //user can delte comment
             return res.status(403).json({ error: 'You are not authorized to delete this comment' });
         }
 

@@ -6,13 +6,13 @@ import express from "express";
 import User from "../Model/userModel.js";
 const router = express.Router();
 //controllers
-import {getStaff,createHelpPost,getPosts, getSinglePost, resolveHelpPost,
+import {getStaff,createHelpPost,getPosts, getSinglePost, updateORresolveHelpPost,
     deleteHelpPost,addCommentToHelpPost, updateComment, deleteComment, postRent
 } from "../Controller/homePageController.js";
-
+import {getServiceRequests, postServiceRequest, updateServiceRequest,
+    resolveServiceRequest, deleteServiceRequest} from "../Controller/serviceController.js";
 import { postVisitorReq, showVisitorReq, updateVisitorReq, 
-    deleteVisitorReq, resolveVisitorReq, 
-    visitorNotify} from "../Controller/visitorController.js";
+    deleteVisitorReq, resolveVisitorReq, visitorNotify} from "../Controller/visitorController.js";
 
 import {getAllAnnouncements} from "../Controller/announcementController.js";
 
@@ -25,7 +25,7 @@ router.get("/",async (req,res) =>{
     if (!user){
         res.status(400).json({error : `Could not find the user`}).redirect('/scoiet/login');
     }
-    const notice = await  getAllAnnouncements();
+    const notice = getAllAnnouncements();
     res.status(200).json({user, notice});
 });
 
@@ -40,50 +40,27 @@ router.get('/staff', async (req,res) => {
 
 
 // Services route
-router.get('/services', async (req, res) => {
-    const userId = req.params.id;
-    try {
-        const user = await User.findById(userId);
-        if (!user) {
-            return res.status(400).json({ error: 'Could not find the user' });
-        }
-        res.status(200).send(`Services for User ID: ${userId}`);
-    } catch (error) {
-        res.status(500).json({ error: 'Internal Server Error' });
-    }
-});
+router.get('/services', getServiceRequests ); 
+//The service requests are filetered based on the usertype of the user
+//the usertype will see services they are meant to see
 
-router.post('/services/:serviceType', async (req, res) => {
-    const type = req.params.serviceType;
-    postServiceRequest(req, res, type);
-    if (type === 'Electrician'){
-        res.status(200).send('Electrician Service');
-    }
-    else if (type === 'Plumber'){
-        ;
-    }
-    else if (type === 'Other'){
-        res.status(200).send('Other Service');
-    }
-    else{
-        res.status(400).send('Invalid Service Type');
+router.post('/services/:serviceType', postServiceRequest);
+router.put('/services/:serviceId/:action', (req,res) =>{
+    const {action} = req.params;
+    if (action === 'update'){
+        updateServiceRequest(req,res);
+    } else if(action === 'resolve'){
+        resolveServiceRequest(req,res);
     }
 });
+router.delete('/services/:serviceId',deleteServiceRequest);
+
 
 //help wall
 router.get('/wall', getPosts);
 router.post('/wall', createHelpPost);
-router.put('/wall/:postid/:action', (req,res) => {
-    const { action } = req.params;
-    if (action === 'resolve') {
-        resolveHelpPost(req, res);
-    } else if (action === 'update') {
-        updateHelpPost(req, res);
-    } else {
-        return res.status(400).json({ message: 'Invalid action' });
-    }
-}); 
-router.delete('/wall/:postId', deleteHelpPost);
+router.put('/wall/:postid/', updateORresolveHelpPost); //only the user who has posted can update or resolve it
+router.delete('/wall/:postId', deleteHelpPost);//admin can delete the post
 
 router.get('/wall/:postId', getSinglePost); //showing a single post with comments
 //comments
@@ -97,7 +74,6 @@ router.get('/visitor', showVisitorReq);
 router.post('/visitor', async (req,res) => {
     const userId = req.params.id;
     const user = await User.findById(userId);
-    const { action } = req.params;
     if (user.usertype === 'resident') {
         postVisitorReq(req, res);
     } else if (user.usertype === 'maintenance' && user.role === 'Gatekeeper') {
