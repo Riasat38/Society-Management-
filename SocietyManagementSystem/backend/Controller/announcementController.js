@@ -38,5 +38,5 @@ export const updateAnnouncement = async (announcementId, content) => {
         throw new Error("Announcement not found");
     }
     announcement.content = content;
-    return announcement;
+    return Array.from(announcement);
 }
