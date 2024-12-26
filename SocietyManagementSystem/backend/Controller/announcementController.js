@@ -1,23 +1,42 @@
-import Announcement from "../Model/announcementModel.js";
+`use strict`
 
+let Announcements_list = new Set();
+class Announcement{
+    static count =  0;
+    constructor(content, creator){
+        this.id = Announcement.count++;
+        this.content = content;
+        this.creator = creator;
+        this.createdAt = new Date();
+    }
+}
 // Fetch all announcements
-export const getAllAnnouncements = async () => {
-    return await Announcement.find()
-        .populate("adminId", "name postedAt") // Populate admin details (name, email, etc.)
-        .sort({ createdAt: -1 });       // Sort announcements by most recent
+export const getAllAnnouncements = ()   => {
+    return Array.from(Announcements_list);
 };
 
 // Create a new announcement
-export const createAnnouncement = async ({ content, adminId }) => {
-    const newAnnouncement = new Announcement({
-        content,
-        adminId
-    });
-    return await newAnnouncement.save();
+export const createAnnouncement = ({ content, adminId }) => {
+    const temp = new Announcement(content,adminId)
+    Announcements_list.add(temp);
+    return temp;
 };
 
 // Delete an announcement by ID
 export const deleteAnnouncement = async (announcementId) => {
-    const result = await Announcement.findByIdAndDelete(announcementId);
-    return result ;
+    const announcement = Announcements_list.find((announcement) => announcement.id === announcementId);
+    if (!announcement) {
+        throw new Error("Announcement not found");
+    }
+    Announcements_list = Announcements_list.filter((announcement) => announcement.id !== announcementId);
+    return Announcements_list;
 };
+
+export const updateAnnouncement = async (announcementId, content) => {
+    const announcement = Announcements_list.find((announcement) => announcement.id === announcementId);
+    if (!announcement) {
+        throw new Error("Announcement not found");
+    }
+    announcement.content = content;
+    return announcement;
+}

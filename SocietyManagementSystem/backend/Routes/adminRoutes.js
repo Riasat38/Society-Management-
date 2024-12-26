@@ -7,6 +7,7 @@ import {
     getAllAnnouncements,
     createAnnouncement,
     deleteAnnouncement,
+    updateAnnouncement
 } from "../Controller/announcementController.js";
 
 const router = express.Router();
@@ -16,9 +17,9 @@ router.get("/:id", (req, res) => {
 
 
 //Fetch all announcements
-router.get("/announcements", async (req, res) => {
+router.get("/announcements", (req, res) => {
     try {
-        const announcements = await getAllAnnouncements();
+        const announcements =  getAllAnnouncements();
         return res.status(200).json(announcements);
     } catch (error) {
         res.status(500).json({
@@ -37,13 +38,13 @@ router.post("/announcements",
         }
 
         const { content } = req.body;
-        const adminId = req.params.id; 
+        const adminId = req.user.id; 
 
         try {
-            const announcement = await createAnnouncement({ content, adminId });
+            const announcement = createAnnouncement(content, adminId);
             res.status(201).json({
                 message: "Announcement created successfully",
-                announcement,
+                announcement,                  
             });
         } catch (error) {
             res.status(500).json({
@@ -77,6 +78,23 @@ router.delete("/announcements/:announcementId", async (req, res) => {
     }
 });
 
+router.put("/announcements/:announcementId", async(req, res) => {
+    const { announcementId } = req.params;
+    const { content } = req.body;
+    const user = req.user.id;
+    if (!content) {
+        return res.status(400).json({ error: "Content is required" });
+    }
+    try {
+        const announcement =  updateAnnouncement(announcementId, content);
+        res.status(200).json({ message: "Announcement updated successfully", announcement });
+    } catch (error) {
+        res.status(500).json({
+            error: "Failed to update announcement",
+            details: error.message,
+        });
+    }
+});
 
 
 router.post("/recruitments", postRecruitment);
