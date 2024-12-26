@@ -36,13 +36,13 @@ const visitorSchema = new mongoose.Schema({
     guestname:{
         type: String,
         required: function(){
-            return this.user && this.user.usertype === 'gatekeeper';  
+            return this.user && this.user.usertype === 'Gatekeeper';  
         }
     },
     guests:{
         type: Number,
         required: function(){
-            return this.user && this.user.usertype === 'gatekeeper';  
+            return this.user && this.user.usertype === 'Gatekeeper';  
         }
     },
     destination:{
@@ -57,6 +57,7 @@ const visitorSchema = new mongoose.Schema({
     }
 },
 {timestamps : true})
+
 
 
 export default mongoose.model("Visitor", visitorSchema);

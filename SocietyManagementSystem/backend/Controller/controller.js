@@ -4,6 +4,7 @@ import User from "../Model/userModel.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import dotenv from "dotenv";
+import { sendNotification } from "../config/mailer.js";
 dotenv.config();
 
 
@@ -90,12 +91,13 @@ export const registerUser = async (req,res) => {
         admin: (await User.countDocuments()) === 0,
       };
     const user = await User.create(userData);
-    const id = user._id.toString();
+    const msg = `Dear ${user.name}\n\nWelcome To Our Society.`
+    sendNotification(user.email,msg);
     if (user) {
       res.status(201).json({
         user,
         token: generateToken(user._id),
-        redirectUrl:`/society/homepage/${(id)}`
+        redirectUrl:`/society/homepage`
       })
     }
   }catch(error) {

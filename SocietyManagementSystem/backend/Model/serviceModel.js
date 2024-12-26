@@ -9,7 +9,8 @@ const serviceSchema = new mongoose.Schema({
     },
     serviceType:{
         type: String,
-        required: true
+        required: true,
+        enums: ['Electrician', 'Plumber', 'Other']
     },
     description:{
         type: String,
