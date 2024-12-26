@@ -5,7 +5,7 @@ import express from "express";
 import passport from "passport";
 import User from "../Model/userModel.js";
 const router = express.Router();
-import {getStaff,createHelpPost,getPosts, getBloodDonations, addBloodDonation} from "../Controller/homePageController.js";
+import {getStaff,createHelpPost,getPosts, getBloodDonations, addBloodDonation, getAllLostAndFound, createLostAndFound, updateLostAndFoundStatus, deleteLostAndFound} from "../Controller/homePageController.js";
 import ensureAdmin from './Middleware/admincheck.js'
 import addUserIdToUrl from "../Middleware/urlencoder.js";
 
@@ -81,5 +81,17 @@ router.post('/:id/wall', (req,res) => {
 //bloodDonation
 router.get('/:id/blood-donation',getBloodDonations );
 router.post('/:id/blood-donation', addBloodDonation);
+
+//lostandfound
+router.get("/:id/lostAndFound", ensureAdmin,getAllLostAndFound);
+
+// Route to create a new Lost or Found item
+router.post("/:id/lostAndFound", createLostAndFound);
+
+// Route to update the status of a Lost or Found item
+router.patch("/:id/lostAndFound/:itemId", updateLostAndFoundStatus);
+
+// Route to delete a Lost or Found item
+router.delete("/:id/lostAndFound/:itemId", ensureAdmin,deleteLostAndFound);
 
 export default router;
