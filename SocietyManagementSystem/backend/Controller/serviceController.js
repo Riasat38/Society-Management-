@@ -8,7 +8,7 @@ export const postServiceRequest = async (req, res) => {
     const serviceType = req.params.serviceType;
     const description = req.body.description;
     const user = await User.findById(userId);
-    if (!user) {
+    if (!user && user.usertype === "resident") {
         return res.status(400).json({ error: 'Could not find the user' });
     }
     if (!serviceType) { 
@@ -69,7 +69,7 @@ export const getServiceRequests = async (req, res) => {
             return res.status(200).json({serviceRequests});
         }else {
             if (user.usertype === 'resident') {
-                serviceRequests = await Service.find({ user: userId });
+                serviceRequests = await Service.find({ user: userId, resolve_status: false});
                 return res.status(200).json({serviceRequests});
             } else if (user.admin) {
                 serviceRequests = await Service.find({ resolve_status: false });
@@ -88,7 +88,7 @@ export const updateServiceRequest = async (req,res) => {
     const {content} = req.body;
     const service = await Service.findById(serviceId);
     try{
-        if (service.user.toString() !== userId || user.admin){ //user can not update the request
+        if (service.user.toString() !== userId || user.admin){ //admin can not update the request
             return res.status(403).json({message: `Unauthorized User`,
                 redirectUrl: '/society/homepage/services'
             })
@@ -120,7 +120,7 @@ export const resolveServiceRequest = async(req,res) => {
     const {resolve_status} = req.body;
     const service = await Service.findById(serviceId);
     try{
-        if (service.user.toString() !== userId &&  !user.admin && service.serviceType !== user.role){ 
+        if (service.user.toString() !== userId &&  !user.admin ){ 
             return res.status(403).json({message: `Unauthorized User`,
                 redirectUrl: '/society/homepage/services'
             })
