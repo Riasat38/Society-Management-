@@ -13,62 +13,39 @@ const router = express.Router();
 router.use(ensureAdmin);
 
 // GET: Fetch all announcements
-router.get("/:id/adminPanel/announcements", async (req, res) => {
+router.get("/:id/announcements", async (req, res) => {
     try {
         const announcements = await getAllAnnouncements();
-        res.status(200).json(announcements);
-    } catch (error) {
-        res.status(500).json({
-            error: "Failed to fetch announcements",
-            details: error.message,
+        if (!announcements || announcements.length === 0) {
+            return res.status(404).json({ error: "No announcements found." });
+        }
+        res.status(200).json({
+            message: "Announcements fetched successfully.",
+            data: announcements,
         });
+    } catch (error) {
+        console.error("Error fetching announcements:", error);
+        res.status(500).json({ error: "Internal Server Error." });
     }
 });
 
 // POST: Create a new announcement
-router.post(
-    "/:id/adminPanel/announcements",
-    body("content").notEmpty().withMessage("Content is required"), // Validate 'content' field
-    async (req, res) => {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(400).json({ errors: errors.array() });
-        }
-
-        const { content } = req.body;
-        const adminId = req.user._id; // Assuming req.user contains authenticated admin details
-
-        try {
-            const announcement = await createAnnouncement({ content, adminId });
-            res.status(201).json({
-                message: "Announcement created successfully",
-                announcement,
-            });
-        } catch (error) {
-            res.status(500).json({
-                error: "Failed to create announcement",
-                details: error.message,
-            });
-        }
-    }
-);
-
-// DELETE: Delete an announcement by ID
-router.delete("/:id/adminPanel/announcements/:announcementId", async (req, res) => {
-    const { announcementId } = req.params;
-
+router.post("/:id/announcements", ensureAdmin, async (req, res) => {
     try {
-        const result = await deleteAnnouncement(announcementId);
-        if (result) {
-            res.status(200).json({ message: "Announcement deleted successfully" });
-        } else {
-            res.status(404).json({ error: "Announcement not found" });
-        }
+        await createAnnouncement(req, res);
     } catch (error) {
-        res.status(500).json({
-            error: "Failed to delete announcement",
-            details: error.message,
-        });
+        console.error("Error in creating announcement route:", error);
+        res.status(500).json({ error: "Internal Server Error." });
+    }
+});
+// DELETE: Delete an announcement by ID
+router.delete("/:id/announcements/:announcementId", ensureAdmin, async (req, res) => {
+    try {
+        req.params.id = req.params.announcementId; // Map the parameter for consistency with controller
+        await deleteAnnouncement(req, res);
+    } catch (error) {
+        console.error("Error in deleting announcement route:", error);
+        res.status(500).json({ error: "Internal Server Error." });
     }
 });
 

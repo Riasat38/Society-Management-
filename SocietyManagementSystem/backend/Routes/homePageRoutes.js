@@ -79,19 +79,53 @@ router.post('/:id/wall', (req,res) => {
     }
 });
 //bloodDonation
-router.get('/:id/blood-donation',getBloodDonations );
-router.post('/:id/blood-donation', addBloodDonation);
+router.get("/:id/blood-donation", async (req, res) => {
+    try {
+        await getBloodDonations(req, res);
+    } catch (error) {
+        console.error("Error in fetching blood donations:", error);
+        res.status(500).json({ error: "Internal Server Error." });
+    }
+});
+
+// POST: Add a new blood donation record
+router.post("/:id/blood-donation", async (req, res) => {
+    try {
+        await addBloodDonation(req, res);
+    } catch (error) {
+        console.error("Error in adding blood donation:", error);
+        res.status(500).json({ error: "Internal Server Error." });
+    }
+});
 
 //lostandfound
-router.get("/:id/lostAndFound", ensureAdmin,getAllLostAndFound);
-
-// Route to create a new Lost or Found item
-router.post("/:id/lostAndFound", createLostAndFound);
-
-// Route to update the status of a Lost or Found item
-router.patch("/:id/lostAndFound/:itemId", updateLostAndFoundStatus);
-
-// Route to delete a Lost or Found item
-router.delete("/:id/lostAndFound/:itemId", ensureAdmin,deleteLostAndFound);
+router.post('/:id/lostAndFound', async (req, res) => {
+    try {
+      await createLostAndFound(req, res);
+    } catch (error) {
+      console.error('Error in creating Lost and Found item:', error);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+  });
+  
+  // Route to update the status of a Lost or Found item
+  router.patch('/:id/lostAndFound/:itemId', async (req, res) => {
+    try {
+      await updateLostAndFoundStatus(req, res);
+    } catch (error) {
+      console.error('Error in updating Lost and Found item status:', error);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+  });
+  
+  // Route to delete a Lost or Found item
+  router.delete('/:id/lostAndFound/:itemId',ensureAdmin, async (req, res) => {
+    try {
+      await deleteLostAndFound(req, res);
+    } catch (error) {
+      console.error('Error in deleting Lost and Found item:', error);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+  });
 
 export default router;

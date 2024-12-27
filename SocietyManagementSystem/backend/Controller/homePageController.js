@@ -87,7 +87,9 @@ export const getAllLostAndFound = async (req, res) => {
   export const createLostAndFound = async (req, res) => {
     try {
       const { itemName, description, reportedBy, contactInfo, status } = req.body;
-  
+      if (!itemName || !description || !reportedBy || !contactInfo) {
+        return res.status(400).json({ error: "Missing required fields" });
+      }  
       const newItem = new LostAndFound({
         itemName,
         description,
