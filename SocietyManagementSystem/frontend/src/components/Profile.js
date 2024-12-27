@@ -66,11 +66,11 @@ function Profile() {
         <main className="main-content">
           <div className="button-container">
             <button className="profile-button">Directory</button>
-            <button className="profile-button">Maintenance</button>
+            <button className="profile-button">Home Maintanace</button>
             <button className="profile-button">Bookings</button>
             <button className="profile-button">Classes</button>
             <button className="profile-button">HelpWall</button>
-            <button className="profile-button">Emergency</button>
+            <button className="profile-button">Visitor Tracker</button>
             <button className="profile-button">Lost & Found</button>
             <button className="profile-button">Marketplace</button>
           </div>
