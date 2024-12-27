@@ -79,8 +79,32 @@
 }
 
 .profile-page .side-panel li {
-  margin: 
+  margin: 5px 0;
+}
 
+.profile-page .main-content {
+  width: 70%;
+  padding: 20px;
+}
 
-  
-  
+.profile-page .button-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px; /* Add more space between the buttons */
+  margin-bottom: 20px;
+}
+
+.profile-page .profile-button {
+  padding: 15px 25px; /* Increase padding for better appearance */
+  font-size: 16px;
+  cursor: pointer;
+  border: none;
+  border-radius: 8px; /* Adjust border radius for a softer look */
+  background-color: #8134ec; /* Change button color */
+  color: #fff;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.profile-page .profile-button:hover {
+  background-color: #3721dc; /* Change hover color */
+}
