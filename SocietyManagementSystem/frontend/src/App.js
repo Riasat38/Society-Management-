@@ -2,10 +2,11 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Header from './components/Header';
 import Footer from './components/Footer';
-import Home from './components/Home';
+import LandingPage from './components/LandingPage';
 import Login from './components/Login';
 import Register from './components/Register';
-import Profile from './components/Profile';
+import Home from './components/Home';
+import Maintenance from './components/Maintenance';
 import './App.css';
 
 function App() {
@@ -15,10 +16,11 @@ function App() {
         <Header />
         <div className="content">
           <Routes>
-            <Route path="/" element={<Home />} />
+            <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
-            <Route path="/profile" element={<Profile />} />
+            <Route path="/home" element={<Home />} />
+            <Route path="/maintenance" element={<Maintenance />} /> 
           </Routes>
         </div>
         <Footer />
