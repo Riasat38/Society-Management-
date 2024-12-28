@@ -33,7 +33,7 @@ function Login() {
       const data = await response.json();
       if (response.ok) {
         console.log(data.message);
-        navigate('/profile'); // Redirect to the profile page
+        navigate('/home'); // Redirect to the home page
       } else {
         setError('Email or password incorrect. Try again.');
       }
