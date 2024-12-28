@@ -11,7 +11,7 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-export const sendNotification = async (requester_email, resolverName, message) => {
+export const sendNotification = async (requester_email, message) => {
     const mailOptions = {
         from: process.env.EMAIL_USER, 
         to: requester_email,

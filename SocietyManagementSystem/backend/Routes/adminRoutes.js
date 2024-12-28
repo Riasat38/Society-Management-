@@ -1,7 +1,7 @@
 `use strict`
 import express from "express";
 import { body, validationResult } from "express-validator";
-import { postRecruitment, deleteRecruitment, updateRecruitment } from "../Controller/controller.js";
+import { postRecruitment, getRecruitment, deleteRecruitment, updateRecruitment } from "../Controller/adminController.js";
 import User from "../Model/userModel.js";
 import {
     getAllAnnouncements,
@@ -11,6 +11,7 @@ import {
 } from "../Controller/announcementController.js";
 
 const router = express.Router();
+
 router.get("/:id", (req, res) => {
     res.send("Admin Panel");
 });
@@ -44,7 +45,7 @@ router.post("/announcements",
             const announcement = createAnnouncement(content, adminId);
             res.status(201).json({
                 message: "Announcement created successfully",
-                announcement,                  
+                announcement                
             });
         } catch (error) {
             res.status(500).json({
@@ -56,11 +57,11 @@ router.post("/announcements",
 );
 
 // DELETE: Delete an announcement by ID
-router.delete("/announcements/:announcementId", async (req, res) => {
+router.delete("/announcements/:announcementId",  (req, res) => {
     const { announcementId } = req.params;
     const adminId = req.user.id;
     try {
-        const result = await deleteAnnouncement(announcementId);
+        const result =  deleteAnnouncement(announcementId);
         if (result) {
             res.status(200).json({ message: "Announcement deleted successfully" , 
                 redirectUrl: '/society/homepage/announcements'
@@ -78,7 +79,7 @@ router.delete("/announcements/:announcementId", async (req, res) => {
     }
 });
 
-router.put("/announcements/:announcementId", async(req, res) => {
+router.put("/announcements/:announcementId", (req, res) => {
     const { announcementId } = req.params;
     const { content } = req.body;
     const user = req.user.id;
@@ -96,7 +97,7 @@ router.put("/announcements/:announcementId", async(req, res) => {
     }
 });
 
-
+router.get("/recruitments", getRecruitment);
 router.post("/recruitments", postRecruitment);
 router.delete("/recruitments/:serial", deleteRecruitment);
 router.put("/recruitments/:serial", updateRecruitment);

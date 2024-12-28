@@ -7,7 +7,7 @@ import User from "../Model/userModel.js";
 const router = express.Router();
 //controllers
 import {getStaff,createHelpPost,getPosts, getSinglePost, updateORresolveHelpPost,
-    deleteHelpPost,addCommentToHelpPost, updateComment, deleteComment, postRent
+    deleteHelpPost,addCommentToHelpPost, updateComment, deleteComment
 } from "../Controller/homePageController.js";
 import {getServiceRequests, postServiceRequest, updateServiceRequest,
     resolveServiceRequest, deleteServiceRequest} from "../Controller/serviceController.js";
@@ -15,6 +15,7 @@ import { postVisitorReq, showVisitorReq, updateVisitorReq,
     deleteVisitorReq, resolveVisitorReq, visitorNotify} from "../Controller/visitorController.js";
 
 import {getAllAnnouncements} from "../Controller/announcementController.js";
+import { deleteRentPost, getALLrents, postRent, updateRentPost } from "../Controller/misc.js";
 
 
 //HomePage  router
@@ -23,7 +24,7 @@ router.get("/",async (req,res) =>{
     const user = await User.findById(userId)
 
     if (!user){
-        res.status(400).json({error : `Could not find the user`}).redirect('/scoiet/login');
+        res.status(400).json({error : `Could not find the user`}).redirect('/scoiety/login');
     }
     const notice = getAllAnnouncements();
     res.status(200).json({user, notice});
@@ -96,8 +97,8 @@ router.put('/visitor/:visitorPostId/:action',async(req,res) => {
 });
 
 router.post('/rent-post', postRent);
-
-
-
+router.get('/rent-post', getALLrents);
+router.put('/rent-post/rentPostId', updateRentPost);
+router.delete('/rent-post/rentPostId', deleteRentPost);
 
 export default router;
