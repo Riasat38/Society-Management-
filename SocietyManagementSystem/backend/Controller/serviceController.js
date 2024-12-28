@@ -14,6 +14,9 @@ export const postServiceRequest = async (req, res) => {
     if (!serviceType) { 
         return res.status(400).json({ error: 'Service Type is required' });
     } 
+    if(!user.usertype === 'resident'){
+        return res.status(400).json({ error: 'This function is not for you' })
+    }
     try{
         const serviceReq = {
             user: userId,
@@ -116,7 +119,7 @@ export const updateServiceRequest = async (req,res) => {
 export const resolveServiceRequest = async(req,res) => {
     const userId = req.user.id;
     const user = await User.find(userId);
-    const {serviceId} = req.params
+    const {serviceId} = req.params;
     const {resolve_status} = req.body;
     const service = await Service.findById(serviceId);
     try{

@@ -9,7 +9,7 @@ class Announcement{
         this.creator = creator;
         this.createdAt = new Date();
     }
-}
+};
 // Fetch all announcements
 export const getAllAnnouncements = ()   => {
     return Array.from(Announcements_list);
@@ -23,7 +23,7 @@ export const createAnnouncement = ({ content, adminId }) => {
 };
 
 // Delete an announcement by ID
-export const deleteAnnouncement = async (announcementId) => {
+export const deleteAnnouncement =  (announcementId) => {
     const announcement = Announcements_list.find((announcement) => announcement.id === announcementId);
     if (!announcement) {
         throw new Error("Announcement not found");
@@ -32,7 +32,7 @@ export const deleteAnnouncement = async (announcementId) => {
     return Announcements_list;
 };
 
-export const updateAnnouncement = async (announcementId, content) => {
+export const updateAnnouncement =  (announcementId, content) => {
     const announcement = Announcements_list.find((announcement) => announcement.id === announcementId);
     if (!announcement) {
         throw new Error("Announcement not found");
