@@ -11,11 +11,11 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-export const sendNotification = async (requester_email, message) => {
+export const sendNotification = async (requester_email,subject, message) => {
     const mailOptions = {
         from: process.env.EMAIL_USER, 
         to: requester_email,
-        subject: 'Visitor Request Resolved',
+        subject: subject,
         text: `${message})`
     };
 

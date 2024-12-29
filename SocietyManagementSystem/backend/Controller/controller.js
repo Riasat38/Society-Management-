@@ -92,7 +92,7 @@ export const registerUser = async (req,res) => {
       };
     const user = await User.create(userData);
     const msg = `Dear ${user.name}\n\nWelcome To Our Society.`
-    sendNotification(user.email,msg);
+    sendNotification(user.email,"User registration",msg);
     if (user) {
       res.status(201).json({
         user,

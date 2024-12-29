@@ -2,45 +2,37 @@
 import Visitor from "../Model/visitorModel.js";
 import User from "../Model/userModel.js";
 import { sendNotification } from "../config/mailer.js";
-
+import moment from 'moment';
 //an user expecting a visitor/delivery/package letting it known to the gatekeeper
 // route : "/visitor", method : POST
 export const postVisitorReq = async (req,res) => {
     try{
-        const {delivery, deliveryType, expectedArrival, description } = req.body
+        const {delivery, deliveryType, expectedArrival, description } = req.body;
         const userId = req.user.id;
-        let flag = false;
         const visitorData = {
             user : userId,
             delivery: delivery,
-            deliveryType : deliveryType ? deliveryType: null,
-            expectedArrival: expectedArrival,
+            deliveryType : delivery && deliveryType ? deliveryType: null,
+            expectedArrival: moment(expectedArrival).format('MM/DD/YYYY HH:mm'),
             description : description ? description: null
         }
-        if (!delivery ){
-            flag = true;
-        }
-        if (delivery && !deliveryType){
-            flag = true;
-        }
 
-        if (flag){
+        if (!delivery || !expectedArrival){
             return res.status(400).json({
                 message : 'Required Data Missing',
                 redirectUrl: '/society/homepage/visitor'
             })
         }
         
-        const visitor = await Visitor.create(visitorData);
-        console.log(visitor)
+        const visitor_req = await Visitor.create(visitorData);
         return res.status(201).json({
             message : "RequestPosted",
-            data : visitor,
+            data : visitor_req,
             redirectUrl : '/society/homepage/visitor'
         })
     } catch (error){
         return res.status(400).json({
-            message : 'Required Data Missing'+error.message,
+            message : 'Something is wrong' + error.message,
             redirectUrl: '/society/homepage/visitor'
         })
     }   
@@ -51,15 +43,19 @@ export const showVisitorReq = async (req,res) => {
     try{
         const userId = req.user.id;
         const user = await User.findById(userId);
-        if (user.usertype === "Gatekeep" || user.admin){
+        if (user.usertype === "Gatekeeper" || user.admin){
             const visitorQueue = await Visitor.find({resolve_status: false})
             .populate({
                 path: 'User',
                 select: "name username flatno"}).sort({ createdAt: 1 }).lean();
             return res.status(200).json(visitorQueue)
         }else{      //requests are filtered based on flatno
-            const filtered_visitor_req = await Visitor.find({ resolve_status: false })
-            return res.status(200).json(filtered_visitor_req)
+            const filtered_visitor_req = await Visitor.find({ resolve_status: false, $or: [ 
+                { 'user': user._id }, // Condition 1: User matches 
+                { 'user.flatno': user.flatno }]
+            }).populate('user', 'name username flatno').lean();
+             
+            return res.status(200).json(filtered_visitor_req);
         }      
     }catch (error){
         return res.status(500).json({
@@ -72,10 +68,9 @@ export const showVisitorReq = async (req,res) => {
 export const updateVisitorReq = async (req,res) => {
     try { 
         const { visitorPostId } = req.params; 
-        const { delivery, deliveryType, expectedArrival, description } = req.body
+        const { delivery, deliveryType, expectedArrival, description } = req.body;
         const userId = req.user.id;
         const user = await User.findById(userId);
-        const updatedVisitorData = {};
 
         const visitorReq = await Visitor.findById(visitorPostId);
         if (!visitorReq) {
@@ -88,11 +83,13 @@ export const updateVisitorReq = async (req,res) => {
             return res.status(403).json({ message: 'Unauthorized access', 
                 redirectUrl: '/society/homepage/visitor' }); 
         }
+        const updatedVisitorData = { 
+            ...(delivery !== undefined && { delivery }), 
+            ...(deliveryType !== undefined && delivery &&{ deliveryType }), 
+            ...(expectedArrival !== undefined && { expectedArrival: moment(expectedArrival, 'MM/DD/YYYY HH:mm') }), 
+            ...(description !== undefined && { description }) 
+        };
 
-        if (delivery) updatedVisitorData.delivery = delivery; 
-        if (deliveryType) updatedVisitorData.deliveryType = deliveryType; 
-        if (expectedArrival) updatedVisitorData.expectedArrival = expectedArrival; 
-        if (description) updatedVisitorData.description = description
         const updatedVisitor = await Visitor.findByIdAndUpdate(visitorPostId, updatedVisitorData, { new: true });
         if (!updatedVisitor) { 
             return res.status(404).json({ message: 'Visitor request not found', 
@@ -121,7 +118,7 @@ export const deleteVisitorReq = async (req, res) => {
                 redirectUrl: '/society/homepage/visitor'
             });
         }
-        if (visitorReq.user.toString() !== userId && !user.admin) {
+        if (visitorReq.user.toString() !== userId && !user.admin && visitorReq.user.flatno !== user.flatno) {
             return res.status(403).json({
                 message: 'Unauthorized access',
                 redirectUrl: '/society/homepage/visitor'
@@ -145,10 +142,10 @@ export const deleteVisitorReq = async (req, res) => {
 export const resolveVisitorReq = async (req, res) => {
     try {
         const { visitorPostId } = req.params;
-        const destination = req.body.destination;
+
         const userId = req.user.id;  
         const visitor_obj = await Visitor.findById(visitorPostId).populate('user', 'name email username');
-        const user = await User.findById(userId)
+        const user = await User.findById(userId);
         if (!visitor_obj) {
             return res.status(404).json({
                 message: 'Visitor request not found',
@@ -160,24 +157,24 @@ export const resolveVisitorReq = async (req, res) => {
                 message: 'Unauthorized access',
                 redirectUrl: '/society/homepage/visitor'
             });
-        }
+        };
         if (visitor_obj.resolve_status){
             return res.status(400).json({
                 message: 'Visitor request already resolved',
                 redirectUrl: '/society/homepage//visitor'
             });
         }
-        if (destination !== visitor_obj.user.flatno) {
-            const flag = "suspicious"
-         } 
+         
         visitor_obj.resolve_status = true;
-        visitor_obj.destination = destination;
+        if (!visitor_obj.destination) {  
+            if (user)  visitor_obj.destination = visitor_obj.user.flatno;  
+        };
         await visitor_obj.save();
 
         const requester_email = visitor_obj.user.email;
-        const requester = visitor_obj.user.username;
+        const requester = visitor_obj.user.name;
         
-        const resolver = user.username;
+        const resolver = user.name;
         let message;
         if (visitor_obj.delivery) {
             message = `Dear ${requester},\n\n Your expected delivery ${visitor_obj.deliveryType} has arrived`;
@@ -185,7 +182,7 @@ export const resolveVisitorReq = async (req, res) => {
             message = `Dear ${requester},\n\nYour expected visitor has arrived.\n\n`;
         }
         message += `resolved by ${resolver}`;
-        await sendNotification(requester_email, message);
+        await sendNotification(requester_email, "Visitor Post Resolved",message);
         return res.status(200).json({
             message: 'Visitor request resolved successfully',
             redirectUrl: '/society/homepage/visitor'
@@ -219,7 +216,7 @@ export const visitorNotify = async (req, res) => {
         const visitorData = {
             user: userId,
             delivery: delivery ? true : false,
-            deliveryType: deliverytype ? deliverytype : null,
+            deliveryType: delivery && deliverytype ? deliverytype : null,
             description: description ? description : null,
             resolve_status: true,    //resolve status true is essential for showing unresolved requests also this visitor has arrived
             guestname: guestname,
@@ -229,7 +226,9 @@ export const visitorNotify = async (req, res) => {
         };
         const guest = await Visitor.create(visitorData);
         const to_whom = await User.find({usertype: "resident", flatno: destination}).lean();
-    
+        if (!to_whom){
+            return res.status(404).json({message:`No users in that flat. No where to go.`})
+        }
         let message;
         for(let person in to_whom){
             const email = person.email;
@@ -237,11 +236,9 @@ export const visitorNotify = async (req, res) => {
                 message = `Dear ${person.name},\n There is a ${guest.deliveryType} intended for ${person.flatno}.`}
             else{
                 message = `Dear ${person.name},\n ${guest.guestname} guest/guests intended for ${person.flatno}.`}
-            message += `notified by ${user.username}`;
-            await sendNotification(email, message);
-        }  
-        guest.resolve_status = true;
-        await guest.save();         
+            message += `notified by ${user.name}`;
+            await sendNotification(email, "Visitor/Guest Arrival" ,message);
+        }          
         res.status(200).json({redirectUrl:'society/homepage/visitor'});
     }catch(error){
         return res.status(500).json(error);
