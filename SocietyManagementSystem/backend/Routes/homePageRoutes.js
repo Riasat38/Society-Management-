@@ -73,24 +73,25 @@ router.delete('/wall/:helpPostId/comment/:commentId', deleteComment)
 router.get('/visitor', showVisitorReq); 
 
 router.post('/visitor', async (req,res) => {
-    const userId = req.params.id;
+    const userId = req.user.id;
     const user = await User.findById(userId);
+
     if (user.usertype === 'resident') {
-        postVisitorReq(req, res);
+        await postVisitorReq(req, res);
     } else if (user.usertype === 'maintenance' && user.role === 'Gatekeeper') {
-        visitorNotify(req, res);    //gatekeeper notifying users about people 
+        await visitorNotify(req, res);    //gatekeeper notifying users about people 
     }
 });
 router.delete('/visitor/:visitorPostId', deleteVisitorReq); 
 router.put('/visitor/:visitorPostId/:action',async(req,res) => {
-    const userId = req.params.id;
+    const userId = req.user.id;
     const user = await User.findById(userId);
 
     const { action } = req.params;
     if (action === 'update' && user.usertype === 'resident') {
-        updateVisitorReq(req, res);
+        await updateVisitorReq(req, res);
     } else if(action === 'resolve' && user.usertype === 'maintenance' && user.role === 'Gatekeeper'){
-        resolveVisitorReq(req, res);}
+        await resolveVisitorReq(req, res);}
     else {
         return res.status(400).json({ message: 'Invalid action' });
     }
