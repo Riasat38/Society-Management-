@@ -45,13 +45,13 @@ router.get('/services', getServiceRequests );
 //The service requests are filetered based on the usertype of the user
 //the usertype will see services they are meant to see
 
-router.post('/services/:serviceType', postServiceRequest);
-router.put('/services/:serviceId/:action', (req,res) =>{
-    const {action} = req.params;
-    if (action === 'update'){
-        updateServiceRequest(req,res);
-    } else if(action === 'resolve'){
-        resolveServiceRequest(req,res);
+router.post('/services', postServiceRequest);
+router.put('/services/:serviceId', async(req,res) =>{
+    const user = await User.findById(req.user.id)
+    if (user.usertype === 'resident'){
+        await updateServiceRequest(req,res);
+    } else if(user.usertype === 'maintenance'){
+        await resolveServiceRequest(req,res);
     }
 });
 router.delete('/services/:serviceId',deleteServiceRequest);
