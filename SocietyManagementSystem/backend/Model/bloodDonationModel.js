@@ -23,12 +23,12 @@ const bloodDonationSchema = new mongoose.Schema({
     required: true,
     default: Date.now,
   },
-  createdAt: {
+  lastBloodGiven: {
     type: Date,
-    default: Date.now,
+    required:true,
   },
 });
 
 
-const bloodDonation= mongoose.model('BloodDonation', bloodDonationSchema)
-export default bloodDonation
+const donor= mongoose.model('BloodDonation', bloodDonationSchema)
+export default donor

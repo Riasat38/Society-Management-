@@ -1,11 +1,10 @@
 `use strict`;
 //routes from this page will be visited to authenticated users only;
 import express from "express";
-
 import passport from "passport";
 import User from "../Model/userModel.js";
 const router = express.Router();
-import {getStaff,createHelpPost,getPosts, getBloodDonations, addBloodDonation, getAllLostAndFound, createLostAndFound, updateLostAndFoundStatus, deleteLostAndFound} from "../Controller/homePageController.js";
+import {getStaff,createHelpPost,getPosts, addBloodDonation, getAllLostAndFound, deleteLostAndFound, createLostAndFound, updateLostAndFoundStatus, getAllBloodDonations} from "../Controller/homePageController.js";
 import ensureAdmin from './Middleware/admincheck.js'
 import addUserIdToUrl from "../Middleware/urlencoder.js";
 
@@ -81,7 +80,7 @@ router.post('/:id/wall', (req,res) => {
 //bloodDonation
 router.get("/:id/blood-donation", async (req, res) => {
     try {
-        await getBloodDonations(req, res);
+        await getAllBloodDonations(req, res);
     } catch (error) {
         console.error("Error in fetching blood donations:", error);
         res.status(500).json({ error: "Internal Server Error." });
@@ -99,33 +98,57 @@ router.post("/:id/blood-donation", async (req, res) => {
 });
 
 //lostandfound
-router.post('/:id/lostAndFound', async (req, res) => {
+router.get('/:id/lostAndFound', (req, res) => {
     try {
-      await createLostAndFound(req, res);
+        const items = getAllLostAndFound(req,res);
+        res.status(200).json(items);
     } catch (error) {
-      console.error('Error in creating Lost and Found item:', error);
-      res.status(500).json({ error: 'Internal Server Error' });
+        res.status(500).json({ error: 'Failed to fetch lost and found items.', details: error.message });
     }
-  });
-  
-  // Route to update the status of a Lost or Found item
-  router.patch('/:id/lostAndFound/:itemId', async (req, res) => {
+});
+
+// POST: Create a new Lost and Found item
+router.post('/:id/lostAndFound', (req, res) => {
     try {
-      await updateLostAndFoundStatus(req, res);
+        const newItem = createLostAndFound(req,res);
+        res.status(201).json({
+            message: 'Lost and Found item added successfully.',
+            data: newItem,
+        });
     } catch (error) {
-      console.error('Error in updating Lost and Found item status:', error);
-      res.status(500).json({ error: 'Internal Server Error' });
+        res.status(500).json({ error: 'Failed to add new lost and found item.', details: error.message });
     }
-  });
-  
-  // Route to delete a Lost or Found item
-  router.delete('/:id/lostAndFound/:itemId',ensureAdmin, async (req, res) => {
+});
+
+// PATCH: Update an existing Lost and Found item
+router.patch('/:id/lostAndFound/:itemId', (req, res) => {
     try {
-      await deleteLostAndFound(req, res);
+        const updatedItem = updateLostAndFoundStatus(req,res)
+        if (updatedItem) {
+            res.status(200).json({
+                message: 'Lost and Found item updated successfully.',
+                data: updatedItem,
+            });
+        } else {
+            res.status(404).json({ error: 'Item not found.' });
+        }
     } catch (error) {
-      console.error('Error in deleting Lost and Found item:', error);
-      res.status(500).json({ error: 'Internal Server Error' });
+        res.status(500).json({ error: 'Failed to update lost and found item.', details: error.message });
     }
-  });
+});
+
+// DELETE: Delete a Lost and Found item
+router.delete('/:id/lostAndFound/:itemId', (req, res) => {
+    try {
+        const result = deleteLostAndFound(req, res);
+        if (result) {
+            res.status(200).json({ message: 'Lost and Found item deleted successfully.' });
+        } else {
+            res.status(404).json({ error: 'Item not found.' });
+        }
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to delete lost and found item.', details: error.message });
+    }
+});
 
 export default router;
