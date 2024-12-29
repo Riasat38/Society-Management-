@@ -12,29 +12,25 @@ export const postVisitorReq = async (req,res) => {
         let flag = false;
         const visitorData = {
             user : userId,
-            deliver: delivery,
+            delivery: delivery,
+            deliveryType : deliveryType ? deliveryType: null,
             expectedArrival: expectedArrival,
+            description : description ? description: null
         }
         if (!delivery ){
             flag = true;
         }
         if (delivery && !deliveryType){
             flag = true;
-        }else if (delivery && deliveryType){
-            visitorData.deliveryType = deliveryType
         }
-        else{
-            throw new Error("Required Data Missing")
-        }
+
         if (flag){
             return res.status(400).json({
                 message : 'Required Data Missing',
                 redirectUrl: '/society/homepage/visitor'
             })
         }
-        if (description){
-            visitorData.description = description; 
-        }
+        
         const visitor = await Visitor.create(visitorData);
         console.log(visitor)
         return res.status(201).json({
@@ -56,13 +52,13 @@ export const showVisitorReq = async (req,res) => {
         const userId = req.user.id;
         const user = await User.findById(userId);
         if (user.usertype === "Gatekeep" || user.admin){
-            const visitorQueue = Visitor.find({resolvestatus: false})
+            const visitorQueue = await Visitor.find({resolve_status: false})
             .populate({
                 path: 'User',
                 select: "name username flatno"}).sort({ createdAt: 1 }).lean();
             return res.status(200).json(visitorQueue)
         }else{      //requests are filtered based on flatno
-            const filtered_visitor_req = await Visitor.find({ flatno: user.flatno,resolvestatus: false })
+            const filtered_visitor_req = await Visitor.find({ resolve_status: false })
             return res.status(200).json(filtered_visitor_req)
         }      
     }catch (error){
@@ -151,8 +147,8 @@ export const resolveVisitorReq = async (req, res) => {
         const { visitorPostId } = req.params;
         const destination = req.body.destination;
         const userId = req.user.id;  
-        const visitor = await Visitor.findById(visitorId).populate('user', 'name email username');
-        const user = User.find(userId)
+        const visitor_obj = await Visitor.findById(visitorPostId).populate('user', 'name email username');
+        const user = await User.findById(userId)
         if (!visitor_obj) {
             return res.status(404).json({
                 message: 'Visitor request not found',
@@ -165,26 +161,26 @@ export const resolveVisitorReq = async (req, res) => {
                 redirectUrl: '/society/homepage/visitor'
             });
         }
-        if (visitor.resolve_status){
+        if (visitor_obj.resolve_status){
             return res.status(400).json({
                 message: 'Visitor request already resolved',
                 redirectUrl: '/society/homepage//visitor'
             });
         }
-        if (destination !== user.flatno) {
+        if (destination !== visitor_obj.user.flatno) {
             const flag = "suspicious"
          } 
-        visitor.resolve_status = true;
-        visitor.destination = destination;
-        await visitor.save();
+        visitor_obj.resolve_status = true;
+        visitor_obj.destination = destination;
+        await visitor_obj.save();
 
-        const requester_email = visitor.user.email;
-        const requester = visitor.user.username;
+        const requester_email = visitor_obj.user.email;
+        const requester = visitor_obj.user.username;
         
         const resolver = user.username;
         let message;
-        if (visitor.delivery) {
-            message = `Dear ${requester},\n\n Your expected delivery ${visitor.deliveryType} has arrived`;
+        if (visitor_obj.delivery) {
+            message = `Dear ${requester},\n\n Your expected delivery ${visitor_obj.deliveryType} has arrived`;
         }else{
             message = `Dear ${requester},\n\nYour expected visitor has arrived.\n\n`;
         }
