@@ -56,7 +56,8 @@ const visitorSchema = new mongoose.Schema({
         }
     }
 },
-{timestamps : true})
+{timestamps : true});
+
 
 
 

@@ -80,6 +80,8 @@ router.post('/visitor', async (req,res) => {
         await postVisitorReq(req, res);
     } else if (user.usertype === 'maintenance' && user.role === 'Gatekeeper') {
         await visitorNotify(req, res);    //gatekeeper notifying users about people 
+    }else {
+        res.status(403).json({message : `Not auhtorized for this page`})
     }
 });
 router.delete('/visitor/:visitorPostId', deleteVisitorReq); 
