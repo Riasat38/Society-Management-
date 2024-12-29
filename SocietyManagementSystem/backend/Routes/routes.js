@@ -1,11 +1,11 @@
 `use strict`;
 //this file handles log in and signup related routes 
 import express from "express";
-import {loginUser,registerUser, logoutUser} from "../Controller/controller.js";
+import {getUser,loginUser,registerUser, logoutUser} from "../Controller/controller.js";
 import { getRecruitment } from "../Controller/adminController.js";
 import { getALLrents } from "../Controller/misc.js";
-import User from "../Model/userModel.js";
 
+import authorizedUser from '../Middleware/protect.js';
 const router = express.Router();
 
 //initial Welcome page
@@ -16,7 +16,7 @@ router.get("/about", (req,res) =>{
 });
 
 
-
+router.get('/getUser', authorizedUser,getUser);
 router.post("/login",loginUser);
      
 router.post("/logout", logoutUser);
