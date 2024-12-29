@@ -4,6 +4,7 @@ import LandingPage from './components/LandingPage';
 import Login from './components/Login';
 import Register from './components/Register';
 import Home from './components/Home';
+import Maintenance from './components/Maintenance';
 
 const AppRoutes = () => {
   return (
@@ -13,6 +14,7 @@ const AppRoutes = () => {
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/Home" element={<Home />} />
+      <Route path="/Maintenance" element={<Maintenance />} />
     </Routes>
   );
 };

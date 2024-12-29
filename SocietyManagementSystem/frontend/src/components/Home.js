@@ -10,7 +10,7 @@ function Home() {
   useEffect(() => {
     // Fetch user data from the backend
     const fetchUserData = async () => {
-      const response = await fetch('http://localhost:4069/api/getUserData');
+      const response = await fetch('http://localhost:4069/society/getUserData');
       const data = await response.json();
       setUserData(data);
     };
@@ -22,7 +22,7 @@ function Home() {
     // Fetch job postings if the user is an admin
     const fetchJobList = async () => {
       if (userData && userData.admin) {
-        const response = await fetch('http://localhost:4069/api/recruitments');
+        const response = await fetch('http://localhost:4069/society/recruitments');
         const data = await response.json();
         setJobList(data.job_list);
       }
