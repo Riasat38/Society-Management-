@@ -5,8 +5,7 @@ import Service from "../Model/serviceModel.js";
 
 export const postServiceRequest = async (req, res) => {
     const userId = req.user.id;
-    const serviceType = req.params.serviceType;
-    const description = req.body.description;
+    const {description,serviceType} = req.body;
     const user = await User.findById(userId);
     if (!user && user.usertype === "resident") {
         return res.status(400).json({ error: 'Could not find the user' });
@@ -72,7 +71,7 @@ export const getServiceRequests = async (req, res) => {
             return res.status(200).json({serviceRequests});
         }else {
             if (user.usertype === 'resident') {
-                serviceRequests = await Service.find({ user: userId, resolve_status: false});
+                serviceRequests = await Service.find({ user: userId, 'user.flatno':user.flatno, resolve_status: false});
                 return res.status(200).json({serviceRequests});
             } else if (user.admin) {
                 serviceRequests = await Service.find({ resolve_status: false });
@@ -87,11 +86,11 @@ export const getServiceRequests = async (req, res) => {
 export const updateServiceRequest = async (req,res) => {
     const userId = req.user.id;
     const user = await User.find(userId);
-    const {serviceId} = req.params
-    const {content} = req.body;
+    const {serviceId} = req.params;
+    const {description} = req.body;
     const service = await Service.findById(serviceId);
     try{
-        if (service.user.toString() !== userId || user.admin){ //admin can not update the request
+        if (service.user.toString() !== userId || user.admin || service.user.flatno !== user.flatno){ //admin can not update the request
             return res.status(403).json({message: `Unauthorized User`,
                 redirectUrl: '/society/homepage/services'
             })
@@ -106,9 +105,10 @@ export const updateServiceRequest = async (req,res) => {
                 redirectUrl: '/society/homepage/services'
             })
         }
-        service.content = content;
+        service.description = description;
         await service.save();
         return res.status(200).json({message:`Request Modified`,
+            data: service,
             redirectUrl: `/society/homepage/services/${serviceId}`
         });
     } catch(error){
@@ -120,25 +120,25 @@ export const resolveServiceRequest = async(req,res) => {
     const userId = req.user.id;
     const user = await User.find(userId);
     const {serviceId} = req.params;
-    const {resolve_status} = req.body;
+    
     const service = await Service.findById(serviceId);
     try{
-        if (service.user.toString() !== userId &&  !user.admin ){ 
+        if (user.usertype !== 'maintenance' &&  !user.admin ){ 
             return res.status(403).json({message: `Unauthorized User`,
                 redirectUrl: '/society/homepage/services'
             })
         }
-        if (!content){
-            return res.status(204).json({message: `No data to be updated`,
-                redirectUrl: '/society/homepage/services'
-            })
-        }
         if (!service){
-            return res.status(404).json({message: `No data to be updated`,
+            return res.status(404).json({message: `No data found`,
                 redirectUrl: '/society/homepage/services'
             })
         }
-        service.resolve_status = resolve_status;
+        if (service.resolve_status){
+            return res.status(404).json({message: `Already Resolved`,
+                redirectUrl: '/society/homepage/services'
+            })
+        }
+        service.resolve_status = true;
         await service.save();
         return res.status(200).json({message:`Request Resolved`,
             redirectUrl: `/society/homepage/services`}
@@ -154,7 +154,7 @@ export const deleteServiceRequest = async (req,res) => {
     const {serviceId} = req.params
     const service = await Service.findById(serviceId);
     try{
-        if (service.user.toString() !== userId &&  !user.admin ){ 
+        if (service.user.toString() !== userId &&  !user.admin && service.user.flatno !== user.flatno){ 
             return res.status(403).json({message: `Unauthorized User`,
                 redirectUrl: '/society/homepage/services'
             })
