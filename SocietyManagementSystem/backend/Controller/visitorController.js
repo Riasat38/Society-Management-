@@ -40,13 +40,14 @@ export const postVisitorReq = async (req,res) => {
 
 //route: "/visitor", method: GET, viewer: gatekeeper
 export const showVisitorReq = async (req,res) => {
+    const userId = req.user.id;
+    const user = await User.findById(userId);
     try{
-        const userId = req.user.id;
-        const user = await User.findById(userId);
-        if (user.usertype === "Gatekeeper" || user.admin){
+        
+        if ((user.usertype === 'maintenance' &&user.role === "Gatekeeper") || user.admin){
             const visitorQueue = await Visitor.find({resolve_status: false})
             .populate({
-                path: 'User',
+                path: 'user',
                 select: "name username flatno"}).sort({ createdAt: 1 }).lean();
             return res.status(200).json(visitorQueue)
         }else{      //requests are filtered based on flatno

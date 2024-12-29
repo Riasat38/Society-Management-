@@ -41,11 +41,9 @@ router.get('/staff', async (req,res) => {
 
 
 // Services route
-router.get('/services', getServiceRequests ); 
-//The service requests are filetered based on the usertype of the user
-//the usertype will see services they are meant to see
+router.get('/services', getServiceRequests); 
 
-router.post('/services', postServiceRequest);
+router.post('/services/:serviceType', postServiceRequest);
 router.put('/services/:serviceId', async(req,res) =>{
     const user = await User.findById(req.user.id)
     if (user.usertype === 'resident'){
@@ -93,6 +91,7 @@ router.put('/visitor/:visitorPostId/:action',async(req,res) => {
     if (action === 'update' && user.usertype === 'resident') {
         await updateVisitorReq(req, res);
     } else if(action === 'resolve' && user.usertype === 'maintenance' && user.role === 'Gatekeeper'){
+        console.log()
         await resolveVisitorReq(req, res);}
     else {
         return res.status(400).json({ message: 'Invalid action' });
