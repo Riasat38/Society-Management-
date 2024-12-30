@@ -1,35 +1,61 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import Header from './components/Header';
 import Footer from './components/Footer';
+import Sidebar from './components/Sidebar';
 import LandingPage from './components/LandingPage';
 import Login from './components/Login';
 import Register from './components/Register';
 import Home from './components/Home';
 import Maintenance from './components/Maintenance';
+import Classes from './components/Classes';
+import Daycare from './components/Daycare';
+import LocalSupport from './components/LocalSupport';
+import Fitness from './components/Fitness';
+import Feedback from './components/Feedback';
+
+
 import './App.css';
 
-function App() {
+const AppContent = () => {
+  const location = useLocation();
+  const showSidebar = !['/', '/login', '/register'].includes(location.pathname);
+
   return (
-    <Router>
-      <div className="App">
-        <Header />
+    <div className="App">
+      <Header />
+      <div className={`main-layout ${showSidebar ? 'with-sidebar' : ''}`}>
+        {showSidebar && <Sidebar />}
         <div className="content">
           <Routes>
             <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/home" element={<Home />} />
-            <Route path="/maintenance" element={<Maintenance />} /> 
+            <Route path="/maintenance" element={<Maintenance />} />
+            <Route path="/classes" element={<Classes />} />
+            <Route path="/daycare" element={<Daycare />} />
+            <Route path="/localsupport" element={<LocalSupport />} />
+            <Route path="/fitness" element={<Fitness />} /> 
+            <Route path="/feedback" element={<Feedback />} />
           </Routes>
         </div>
-        <Footer />
       </div>
+      <Footer />
+    </div>
+  );
+};
+
+function App() {
+  return (
+    <Router>
+      <AppContent />
     </Router>
   );
 }
 
 export default App;
+
 
 
 

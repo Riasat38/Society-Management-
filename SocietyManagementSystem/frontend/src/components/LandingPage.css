@@ -1,5 +1,5 @@
 .landing-page {
-    text-align: center;
+    text-align: right;
     padding: 50px;
   }
   
@@ -15,12 +15,13 @@
     transition: background-color 0.3s, color 0.3s;
     border: none;
     border-radius: 5px;
-    background-color: #333;
-    color: #fff;
+    background-color: #734efc;
+    color: 000000;
   }
   
   .auth-button:hover {
-    background-color: #555;
-    color: #ddd;
+    background-color: #3a06f4;
+    color: 000000;
   }
   
+
