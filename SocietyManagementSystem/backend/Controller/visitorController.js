@@ -145,7 +145,7 @@ export const resolveVisitorReq = async (req, res) => {
         const { visitorPostId } = req.params;
 
         const userId = req.user.id;  
-        const visitor_obj = await Visitor.findById(visitorPostId).populate('user', 'name email username');
+        const visitor_obj = await Visitor.findById(visitorPostId).populate('user', 'name email username flatno');
         const user = await User.findById(userId);
         if (!visitor_obj) {
             return res.status(404).json({
