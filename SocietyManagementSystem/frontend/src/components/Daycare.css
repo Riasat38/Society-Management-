@@ -1,0 +1,95 @@
+body, html {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Arial', sans-serif;
+    height: 100%;
+    overflow: hidden; /* Prevent scrolling on the body */
+  }
+  
+  .page-container {
+    display: flex;
+    height: 100vh; /* Full viewport height */
+  }
+  
+  .main-content {
+    flex-grow: 1;
+    padding: 20px;
+    overflow-y: auto; /* Ensure the main content can scroll */
+    background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+    display: flex;
+    flex-direction: column; /* Stack elements vertically */
+    align-items: center; /* Center elements horizontally */
+  }
+  
+  .daycare-header {
+    text-align: center;
+    margin-bottom: 30px;
+    width: 80%; /* Adjust width to center header */
+    max-width: 800px; /* Optional: set a maximum width */
+    text-align: justify; /* Justify alignment for the text */
+  }
+  
+  .daycare-header h1 {
+    font-size: 2.5rem;
+    color: #1565c0;
+    text-align: center; /* Center align header text */
+  }
+  
+  .daycare-header p {
+    font-size: 1.2rem;
+    color: #424242;
+    margin-top: 10px; /* Adjust top margin to reduce space */
+  }
+  
+  .info-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    align-items: center; /* Center items horizontally */
+    width: 100%;
+  }
+  
+  .info-item {
+    background-color: #fff;
+    padding: 20px; /* Reduce padding to make the box smaller */
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 15px; /* Reduce gap to make the box smaller */
+    transition: transform 0.2s ease;
+    width: 80%; /* Adjust the width as needed */
+    max-width: 600px; /* Optional: set a maximum width */
+  }
+  
+  .info-title {
+    font-size: 1.2rem; /* Reduce font size to make the box smaller */
+    color: #1565c0;
+    cursor: pointer;
+    font-weight: bold;
+  }
+
+  .info-item:hover {
+    transform: scale(1.05);
+  }
+  
+  .info-checkbox {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+  }
+  
+  .info-details {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #ccc;
+    text-align: left; /* Ensures left alignment */
+  }
+  
+  .info-details p {
+    font-size: 1rem;
+    color: #424242;
+    margin: 5px 0;
+  }
+  

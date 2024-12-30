@@ -4,6 +4,7 @@ import LandingPage from './components/LandingPage';
 import Login from './components/Login';
 import Register from './components/Register';
 import Home from './components/Home';
+import Sidebar from './components/Sidebar';
 import Maintenance from './components/Maintenance';
 
 const AppRoutes = () => {
@@ -14,6 +15,7 @@ const AppRoutes = () => {
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/Home" element={<Home />} />
+      <Route path="/Sidebar" element={<Sidebar />} />
       <Route path="/Maintenance" element={<Maintenance />} />
     </Routes>
   );
