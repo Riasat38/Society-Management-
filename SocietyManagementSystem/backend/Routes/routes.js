@@ -106,9 +106,6 @@ router.post("/registerPage", (req,res) => {
     });
   
 });
-// Blood donation routes
-router.post('/:id/bloodDonation', createBloodDonation);
-router.get('/:id/bloodDonation', getBloodDonations);
 
 
 export default router; 
