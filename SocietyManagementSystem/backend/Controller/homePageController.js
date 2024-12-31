@@ -2,19 +2,33 @@
 
 import User from "../Model/userModel.js";
 import Help from '../Model/helpPost.js';
-import donor from "../Model/bloodDonationModel.js";
+import BloodDonation from "../Model/bloodDonationModel.js";
 
-
-export const getStaff = async (req,res) => {
+export const getStaffAndResident = async (req,res) => {
     try{
-        const staffs = User.find({ usertype: 'maintenance'}).lean();
-        return staffs
+        const staffs = await User.find({ usertype: 'maintenance'}).select('-password').lean();
+        const residents = await User.find({ usertype: 'resident'}).select('-password').lean();
+        if (!staffs || !residents){
+            throw new Error("Data were not found");
+        }
+        res.status(200).json({staffs,residents});
     } catch(error){
-        console.log(error)
-        return error
+        console.log(error);
+        return res.status(400).json({error:error.message});
     }
 };
 
+export const getAdmin = async(req,res) =>{
+    try{
+        const admin = await User.find({admin:true}).select('-password');
+        if(!admin){
+            throw new Error("No Admin Found")
+        }
+        res.status(200).json(admin);
+    } catch(error){
+        res.status(400).json({error:error.message})
+    }
+};
 export const createHelpPost = async (req,res) => {
      try {
         const {help_descr} = req.body;
@@ -25,7 +39,7 @@ export const createHelpPost = async (req,res) => {
         }  
         if (!help_descr) { 
             return res.status(400).json({ error: 'Description cannot be empty',
-                redirectUrl : `/society/homepage/ ${userId}/wall`
+                redirectUrl : `/society/homepage/wall`
              }); 
         }
         const helpPost = await Help.create({ description: help_descr, user: userId });
@@ -75,8 +89,8 @@ export const getSinglePost = async (req, res) => {
 
 export const updateORresolveHelpPost = async (req, res) => {
     try {
-        const helpPostId = req.params.postId;
-        const { description,resolve } = req.body;
+        const {helpPostId,modifyType} = req.params.postId;
+        const { description} = await req.body;
         const userId = req.user.id;
 
         const helpPost = await Help.findById(helpPostId);
@@ -92,8 +106,12 @@ export const updateORresolveHelpPost = async (req, res) => {
         if (helpPost.resolve_status.resolved) {
             return res.status(400).json({ error: 'Cannot update a resolved post' });
         }
-        helpPost.description = description;
-        helpPost.resolve_status = resolve
+        if (modifyType === 'update'){
+            helpPost.description = description;
+        }
+        if (modifyType === 'resolve'){
+            helpPost.resolve_status = true
+        }
         await helpPost.save();
 
         res.status(200).json({
@@ -225,38 +243,23 @@ export const deleteComment = async (req, res) => {
     }
 };
 
+
 //bloodDonation
 export const addBloodDonation = async (req, res) => {
+    const userId = req.user.id;
+    const user = await User.findById(userId); 
     try {
-        const { donorName, donorContact, bloodGroup, donationDate, lastBloodGiven} = req.body;
+        const {  bloodGroup,  lastBloodGiven} = await req.body;
 
-        // Validation
-        if (!donorName || !donorContact || !bloodGroup || !lastBloodGiven) {
+        if (!donorName ||  !bloodGroup || !lastBloodGiven) {
             return res.status(400).json({ error: "Missing required fields" });
         }
 
-        const lastDonationDate = new Date(lastBloodGiven);
-        if (isNaN(lastDonationDate)) {
-          return res.status(400).json({ error: "Invalid date format for lastBloodGiven" });
-        }
-        const currentDate = new Date();
-        const differenceInDays = Math.floor(
-            (currentDate - lastDonationDate) / (1000 * 60 * 60 * 24)
-        );
-
-        if (differenceInDays < 120) {
-            return res.status(400).json({
-                error: `Donor is not eligible to donate blood. Please wait ${120 - differenceInDays} more days.`,
-            });
-        }
-
-        const donorInfo= await donor.create({
-            donorName,
-            donorContact,
-            bloodGroup,
-            donationDate:donationDate||Date.now(),
-            lastBloodGiven
-
+        const donorInfo= await BloodDonation.create({
+            donorName: userId,
+            donorContact: user.contactno,
+            bloodGroup: bloodGroup,
+            lastBloodGiven: lastBloodGiven,
         });
 
         console.log('Blood Donation Record Created:', donorInfo);
@@ -267,103 +270,49 @@ export const addBloodDonation = async (req, res) => {
     }
 };
 
-//lost and found
-class LostAndFound {
-    static count = 0; // Static counter for generating unique IDs
-    constructor(userId, itemName, description, status, contact) {
-        this.id = LostAndFound.count++;
-        this.userId = userId;
-        this.itemName = itemName;
-        this.description = description;
-        this.status = status || "Pending"; // Default status is "Pending"
-        this.contact = contact;
-    }
-}
-
-let lostAndFoundItems = []; // Array to store lost and found items
-
-// Controller to post a new lost or found item
-export const createLostAndFound = async (req, res) => {
-    const userId = req.user.id;
-    const user = await User.findById(userId); // Fetch user details
-    const { itemName, description, status } = req.body;
-
-    try {
-        // Validation
-        if (!itemName || !description) {
-            return res.status(400).json({ error: "Please provide all required details." });
+export const getAvailableBloodDonor = async(req,res) => {
+    try{
+        const available_donors = await BloodDonation.find({available:true}).populate('donor', 'name contactno email flatno')
+        if (!available_donors){
+            throw new Error("No available Donors Found")
         }
-
-        // Create new lost or found item
-        const newItem = new LostAndFound(
-            userId,
-            itemName,
-            description,
-            status,
-            user.contactno
-        );
-        lostAndFoundItems.push(newItem); // Add the new item to the array
-
-        return res.status(200).json({
-            message: "Lost and found item posted successfully.",
-            data: newItem,
-        });
-    } catch (error) {
-        return res.status(500).json({ error: error.message });
+        return res.status(200).json(available_donors);
+    } catch(error){
+        return res.status(400).json({error: error.message});
     }
 };
 
-// Controller to fetch all lost and found items
-export const getAllLostAndFound = (req, res) => {
-    try {
-        return res.status(200).json({
-            message: "Lost and found items retrieved successfully.",
-            data: lostAndFoundItems,
-        });
-    } catch (error) {
-        return res.status(500).json({ error: error.message });
+export const getSingleBloodDonor = async(req,res) =>{
+    try{
+        const donor = await BloodDonation.findById(req.user.id).populate('user', "name username contactno flatno");
+    if (!user){
+        throw new Error("No user Found")
+    }
+    return res.status(200).json(donor)
+    }catch (error){
+        return res.status(400).json({error: error.message})
     }
 };
 
-
-export const updateLostAndFoundStatus = (req, res) => {
-    const { itemId } = req.params;
-    const { status } = req.body;
-
-    try {
-        const item = lostAndFoundItems.find((item) => item.id == itemId);
-
-        if (!item) {
-            return res.status(404).json({ error: "Item not found." });
+export const updateDonorInfo = async(req,res) => {
+    const {lastBloodGiven, availibility} = await req.body;
+    try{
+        if (!lastBloodGiven){
+            throw new Error("No data given to be updated")
         }
-
-        item.status = status || item.status; // Update the status if provided
-        return res.status(200).json({
-            message: "Item status updated successfully.",
-            data: item,
-        });
-    } catch (error) {
-        return res.status(500).json({ error: error.message });
-    }
-};
-
-// Controller to delete a lost or found item
-export const deleteLostAndFound = (req, res) => {
-    const { itemId } = req.params;
-
-    try {
-        const index = lostAndFoundItems.findIndex((item) => item.id == itemId);
-
-        if (index === -1) {
-            return res.status(404).json({ error: "Item not found." });
+        if (typeof(availibility) !== Boolean){
+            throw new Error("Wrong Data type");
         }
-
-        const deletedItem = lostAndFoundItems.splice(index, 1); // Remove the item
-        return res.status(200).json({
-            message: "Item deleted successfully.",
-            data: deletedItem,
-        });
-    } catch (error) {
-        return res.status(500).json({ error: error.message });
+        const donor = await BloodDonation.findById(req.user.id).populate('user', "name username contactno flatno");
+        if(!donor){
+            throw new Error("No data found")
+        }
+        donor.lastBloodGiven = lastBloodGiven;
+        donor.available = availibility;
+        await donor.save();
+        return res.status(200).json(donor);
+    } catch(error){
+        return res.status(400).json({error:error.message});
     }
 };
+

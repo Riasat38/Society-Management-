@@ -6,13 +6,10 @@ import express from "express";
 import User from "../Model/userModel.js";
 const router = express.Router();
 //controllers
-import {getStaff,createHelpPost,getPosts, getSinglePost, updateORresolveHelpPost,
+
+import {getStaffAndResident,getAdmin,createHelpPost,getPosts, getSinglePost, updateORresolveHelpPost,
     deleteHelpPost,addCommentToHelpPost, updateComment, deleteComment,
-    addBloodDonation,
-    getAllLostAndFound,
-    createLostAndFound,
-    updateLostAndFoundStatus,
-    deleteLostAndFound
+    addBloodDonation,getAvailableBloodDonor, getSingleBloodDonor, updateDonorInfo,
 } from "../Controller/homePageController.js";
 import {getServiceRequests, postServiceRequest, updateServiceRequest,
     resolveServiceRequest, deleteServiceRequest} from "../Controller/serviceController.js";
@@ -20,7 +17,10 @@ import { postVisitorReq, showVisitorReq, updateVisitorReq,
     deleteVisitorReq, resolveVisitorReq, visitorNotify} from "../Controller/visitorController.js";
 
 import {getAllAnnouncements} from "../Controller/announcementController.js";
-import { deleteRentPost, getALLrents, postRent, updateRentPost } from "../Controller/misc.js";
+import { deleteRentPost, getALLrents, postRent, updateRentPost ,getAllLostAndFound,
+    createLostAndFound,
+    updateLostAndFoundStatus,
+    deleteLostAndFound,} from "../Controller/misc.js";
 
 
 //HomePage  router
@@ -36,14 +36,8 @@ router.get("/",async (req,res) =>{
 });
 
 //staff directory
-router.get('/staff', async (req,res) => {
-    const staff_list_obj = await getStaff();
-    if (!staff_list_obj){
-        res.status(400).json({msg :"Problem finding staff records"});
-    }
-    return res.status(200).json(staff_list_obj);
-});
-
+router.get('/staff', getStaffAndResident);
+router.get('/admin', getAdmin);
 
 // Services route
 router.get('/services', getServiceRequests); 
@@ -63,7 +57,7 @@ router.delete('/services/:serviceId',deleteServiceRequest);
 //help wall
 router.get('/wall', getPosts);
 router.post('/wall', createHelpPost);
-router.put('/wall/:postid/', updateORresolveHelpPost); //only the user who has posted can update or resolve it
+router.put('/wall/:postid/:modifyType', updateORresolveHelpPost); //only the user who has posted can update or resolve it
 router.delete('/wall/:postId', deleteHelpPost);//admin can delete the post
 
 router.get('/wall/:postId', getSinglePost); //showing a single post with comments
@@ -108,11 +102,13 @@ router.get('/rent-post', getALLrents);
 router.put('/rent-post/rentPostId', updateRentPost);
 router.delete('/rent-post/rentPostId', deleteRentPost);
 
+// POST: Signing up for bood donation
+router.post("/blood-donation",addBloodDonation);
 
-// POST: Add a new blood donation record
-router.post("/:id/blood-donation",addBloodDonation)
-export default router;
-//lostandfound
+router.get('/getBloodDonor', getAvailableBloodDonor);
+router.get("/singleDonor", getSingleBloodDonor);
+router.put('/singleDonor', updateDonorInfo);
+
 
 router.get('/:id/lostAndFound', (req, res) => {
     try {
@@ -167,3 +163,5 @@ router.delete('/:id/lostAndFound/:itemId', (req, res) => {
     }
 });
 
+
+export default router;
