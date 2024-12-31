@@ -1,12 +1,12 @@
 'use strict';
 
 import mongoose from 'mongoose';
-import moment from 'moment';
+
 const bloodDonationSchema = new mongoose.Schema({
   donor: {
     type: mongoose.Schema.Types.ObjectId,
     ref : 'User',
-    required: true    
+    required: true  
   },
   bloodGroup: {
     type: String,
@@ -21,6 +21,7 @@ const bloodDonationSchema = new mongoose.Schema({
     type: Boolean,
   }
 }, {timestamps: true});
+
 function updateAvailability(doc) { 
   const currentDate = new Date(); 
   const lastDonationDate = new Date(doc.lastBloodGiven);  
@@ -39,7 +40,6 @@ bloodDonationSchema.pre('find', function(next) {
     next(); }).catch(next); 
 });
 
-
 bloodDonationSchema.pre('findOne', function(next) { 
   this.findOne().then(doc => { 
     if (doc) updateAvailability(doc); next(); 
@@ -54,3 +54,4 @@ bloodDonationSchema.pre('findById', function(next) {
 });
 
 export default mongoose.model('BloodDonation', bloodDonationSchema);
+

@@ -6,16 +6,10 @@ import express from "express";
 import User from "../Model/userModel.js";
 const router = express.Router();
 //controllers
-<<<<<<< Updated upstream
-import {getStaff,createHelpPost,getPosts, getSinglePost, updateORresolveHelpPost,
-    deleteHelpPost,addCommentToHelpPost, updateComment, deleteComment
-=======
-import {getStaffAndResident,createHelpPost,getPosts, getSinglePost, updateORresolveHelpPost,
+
+import {getStaffAndResident,getAdmin,createHelpPost,getPosts, getSinglePost, updateORresolveHelpPost,
     deleteHelpPost,addCommentToHelpPost, updateComment, deleteComment,
     addBloodDonation,getAvailableBloodDonor, getSingleBloodDonor, updateDonorInfo,
-    
-    getAdmin
->>>>>>> Stashed changes
 } from "../Controller/homePageController.js";
 import {getServiceRequests, postServiceRequest, updateServiceRequest,
     resolveServiceRequest, deleteServiceRequest} from "../Controller/serviceController.js";
@@ -108,10 +102,6 @@ router.get('/rent-post', getALLrents);
 router.put('/rent-post/rentPostId', updateRentPost);
 router.delete('/rent-post/rentPostId', deleteRentPost);
 
-<<<<<<< Updated upstream
-export default router;
-=======
-
 // POST: Signing up for bood donation
 router.post("/blood-donation",addBloodDonation);
 
@@ -175,4 +165,3 @@ router.delete('/:id/lostAndFound/:itemId', (req, res) => {
 
 
 export default router;
->>>>>>> Stashed changes

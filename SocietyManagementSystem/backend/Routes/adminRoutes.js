@@ -1,7 +1,7 @@
 `use strict`
 import express from "express";
 import { body, validationResult } from "express-validator";
-import { postRecruitment, getRecruitment, deleteRecruitment, updateRecruitment } from "../Controller/adminController.js";
+import { postRecruitment, getRecruitment, deleteRecruitment, updateRecruitment, getAllBloodDonations } from "../Controller/adminController.js";
 import User from "../Model/userModel.js";
 import {
     getAllAnnouncements,
@@ -101,4 +101,13 @@ router.get("/recruitments", getRecruitment);
 router.post("/recruitments", postRecruitment);
 router.delete("/recruitments/:serial", deleteRecruitment);
 router.put("/recruitments/:serial", updateRecruitment);
+
+router.get("/:id/blood-donation", async (req, res) => {
+    try {
+        await getAllBloodDonations(req, res);
+    } catch (error) {
+        console.error("Error in fetching blood donations:", error);
+        res.status(500).json({ error: "Internal Server Error." });
+    }
+});
 export default router;
