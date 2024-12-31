@@ -2,6 +2,8 @@
 
 import User from "../Model/userModel.js";
 import Help from '../Model/helpPost.js';
+import donor from "../Model/bloodDonationModel.js";
+
 
 export const getStaff = async (req,res) => {
     try{
@@ -220,5 +222,148 @@ export const deleteComment = async (req, res) => {
     } catch (error) {
         console.error('Error deleting comment:', error);
         res.status(500).json({ error: 'Internal Server Error' });
+    }
+};
+
+//bloodDonation
+export const addBloodDonation = async (req, res) => {
+    try {
+        const { donorName, donorContact, bloodGroup, donationDate, lastBloodGiven} = req.body;
+
+        // Validation
+        if (!donorName || !donorContact || !bloodGroup || !lastBloodGiven) {
+            return res.status(400).json({ error: "Missing required fields" });
+        }
+
+        const lastDonationDate = new Date(lastBloodGiven);
+        if (isNaN(lastDonationDate)) {
+          return res.status(400).json({ error: "Invalid date format for lastBloodGiven" });
+        }
+        const currentDate = new Date();
+        const differenceInDays = Math.floor(
+            (currentDate - lastDonationDate) / (1000 * 60 * 60 * 24)
+        );
+
+        if (differenceInDays < 120) {
+            return res.status(400).json({
+                error: `Donor is not eligible to donate blood. Please wait ${120 - differenceInDays} more days.`,
+            });
+        }
+
+        const donorInfo= await donor.create({
+            donorName,
+            donorContact,
+            bloodGroup,
+            donationDate:donationDate||Date.now(),
+            lastBloodGiven
+
+        });
+
+        console.log('Blood Donation Record Created:', donorInfo);
+        res.status(201).json({ message: "Blood donation record added successfully",donorInfo });
+    } catch (error) {
+        console.error('Error adding blood donation record:', error);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+};
+
+//lost and found
+class LostAndFound {
+    static count = 0; // Static counter for generating unique IDs
+    constructor(userId, itemName, description, status, contact) {
+        this.id = LostAndFound.count++;
+        this.userId = userId;
+        this.itemName = itemName;
+        this.description = description;
+        this.status = status || "Pending"; // Default status is "Pending"
+        this.contact = contact;
+    }
+}
+
+let lostAndFoundItems = []; // Array to store lost and found items
+
+// Controller to post a new lost or found item
+export const createLostAndFound = async (req, res) => {
+    const userId = req.user.id;
+    const user = await User.findById(userId); // Fetch user details
+    const { itemName, description, status } = req.body;
+
+    try {
+        // Validation
+        if (!itemName || !description) {
+            return res.status(400).json({ error: "Please provide all required details." });
+        }
+
+        // Create new lost or found item
+        const newItem = new LostAndFound(
+            userId,
+            itemName,
+            description,
+            status,
+            user.contactno
+        );
+        lostAndFoundItems.push(newItem); // Add the new item to the array
+
+        return res.status(200).json({
+            message: "Lost and found item posted successfully.",
+            data: newItem,
+        });
+    } catch (error) {
+        return res.status(500).json({ error: error.message });
+    }
+};
+
+// Controller to fetch all lost and found items
+export const getAllLostAndFound = (req, res) => {
+    try {
+        return res.status(200).json({
+            message: "Lost and found items retrieved successfully.",
+            data: lostAndFoundItems,
+        });
+    } catch (error) {
+        return res.status(500).json({ error: error.message });
+    }
+};
+
+
+export const updateLostAndFoundStatus = (req, res) => {
+    const { itemId } = req.params;
+    const { status } = req.body;
+
+    try {
+        const item = lostAndFoundItems.find((item) => item.id == itemId);
+
+        if (!item) {
+            return res.status(404).json({ error: "Item not found." });
+        }
+
+        item.status = status || item.status; // Update the status if provided
+        return res.status(200).json({
+            message: "Item status updated successfully.",
+            data: item,
+        });
+    } catch (error) {
+        return res.status(500).json({ error: error.message });
+    }
+};
+
+// Controller to delete a lost or found item
+export const deleteLostAndFound = (req, res) => {
+    const { itemId } = req.params;
+
+    try {
+        const index = lostAndFoundItems.findIndex((item) => item.id == itemId);
+
+        if (index === -1) {
+            return res.status(404).json({ error: "Item not found." });
+        }
+
+        const deletedItem = lostAndFoundItems.splice(index, 1); // Remove the item
+        return res.status(200).json({
+            message: "Item deleted successfully.",
+            data: deletedItem,
+        });
+    } catch (error) {
+        return res.status(500).json({ error: error.message });
     }
 };

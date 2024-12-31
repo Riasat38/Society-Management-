@@ -7,7 +7,12 @@ import User from "../Model/userModel.js";
 const router = express.Router();
 //controllers
 import {getStaff,createHelpPost,getPosts, getSinglePost, updateORresolveHelpPost,
-    deleteHelpPost,addCommentToHelpPost, updateComment, deleteComment
+    deleteHelpPost,addCommentToHelpPost, updateComment, deleteComment,
+    addBloodDonation,
+    getAllLostAndFound,
+    createLostAndFound,
+    updateLostAndFoundStatus,
+    deleteLostAndFound
 } from "../Controller/homePageController.js";
 import {getServiceRequests, postServiceRequest, updateServiceRequest,
     resolveServiceRequest, deleteServiceRequest} from "../Controller/serviceController.js";
@@ -103,4 +108,62 @@ router.get('/rent-post', getALLrents);
 router.put('/rent-post/rentPostId', updateRentPost);
 router.delete('/rent-post/rentPostId', deleteRentPost);
 
+
+// POST: Add a new blood donation record
+router.post("/:id/blood-donation",addBloodDonation)
 export default router;
+//lostandfound
+
+router.get('/:id/lostAndFound', (req, res) => {
+    try {
+        const items = getAllLostAndFound(req,res);
+        res.status(200).json(items);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to fetch lost and found items.', details: error.message });
+    }
+});
+
+// POST: Create a new Lost and Found item
+router.post('/:id/lostAndFound', (req, res) => {
+    try {
+        const newItem = createLostAndFound(req,res);
+        res.status(201).json({
+            message: 'Lost and Found item added successfully.',
+            data: newItem,
+        });
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to add new lost and found item.', details: error.message });
+    }
+});
+
+// PATCH: Update an existing Lost and Found item
+router.patch('/:id/lostAndFound/:itemId', (req, res) => {
+    try {
+        const updatedItem = updateLostAndFoundStatus(req,res)
+        if (updatedItem) {
+            res.status(200).json({
+                message: 'Lost and Found item updated successfully.',
+                data: updatedItem,
+            });
+        } else {
+            res.status(404).json({ error: 'Item not found.' });
+        }
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to update lost and found item.', details: error.message });
+    }
+});
+
+// DELETE: Delete a Lost and Found item
+router.delete('/:id/lostAndFound/:itemId', (req, res) => {
+    try {
+        const result = deleteLostAndFound(req, res);
+        if (result) {
+            res.status(200).json({ message: 'Lost and Found item deleted successfully.' });
+        } else {
+            res.status(404).json({ error: 'Item not found.' });
+        }
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to delete lost and found item.', details: error.message });
+    }
+});
+
