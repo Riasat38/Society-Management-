@@ -1,4 +1,5 @@
 `use strict`;
+import donor from "../Model/bloodDonationModel.js";
 import User from "../Model/userModel.js";
 import validateDate from "./misc.js";
 class Recruitment{
@@ -75,4 +76,14 @@ export const updateRecruitment = async (req, res) => {
           details: error.message,
       });
   }
+};
+
+export const getAllBloodDonations = async (req, res) => {
+    try {
+        const donations = await donor.find();
+        res.status(200).json(donations);
+    } catch (error) {
+        console.error('Error fetching blood donation records:', error);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
 };

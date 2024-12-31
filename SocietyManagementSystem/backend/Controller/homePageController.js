@@ -2,6 +2,8 @@
 
 import User from "../Model/userModel.js";
 import Help from '../Model/helpPost.js';
+import donor from "../Model/bloodDonationModel.js";
+
 
 export const getStaff = async (req,res) => {
     try{
@@ -222,3 +224,46 @@ export const deleteComment = async (req, res) => {
         res.status(500).json({ error: 'Internal Server Error' });
     }
 };
+
+//bloodDonation
+export const addBloodDonation = async (req, res) => {
+    try {
+        const { donorName, donorContact, bloodGroup, donationDate, lastBloodGiven} = req.body;
+
+        // Validation
+        if (!donorName || !donorContact || !bloodGroup || !lastBloodGiven) {
+            return res.status(400).json({ error: "Missing required fields" });
+        }
+
+        const lastDonationDate = new Date(lastBloodGiven);
+        if (isNaN(lastDonationDate)) {
+          return res.status(400).json({ error: "Invalid date format for lastBloodGiven" });
+        }
+        const currentDate = new Date();
+        const differenceInDays = Math.floor(
+            (currentDate - lastDonationDate) / (1000 * 60 * 60 * 24)
+        );
+
+        if (differenceInDays < 120) {
+            return res.status(400).json({
+                error: `Donor is not eligible to donate blood. Please wait ${120 - differenceInDays} more days.`,
+            });
+        }
+
+        const donorInfo= await donor.create({
+            donorName,
+            donorContact,
+            bloodGroup,
+            donationDate:donationDate||Date.now(),
+            lastBloodGiven
+
+        });
+
+        console.log('Blood Donation Record Created:', donorInfo);
+        res.status(201).json({ message: "Blood donation record added successfully",donorInfo });
+    } catch (error) {
+        console.error('Error adding blood donation record:', error);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+};
+

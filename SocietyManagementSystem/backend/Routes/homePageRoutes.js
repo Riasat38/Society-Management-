@@ -7,7 +7,8 @@ import User from "../Model/userModel.js";
 const router = express.Router();
 //controllers
 import {getStaff,createHelpPost,getPosts, getSinglePost, updateORresolveHelpPost,
-    deleteHelpPost,addCommentToHelpPost, updateComment, deleteComment
+    deleteHelpPost,addCommentToHelpPost, updateComment, deleteComment,
+    addBloodDonation
 } from "../Controller/homePageController.js";
 import {getServiceRequests, postServiceRequest, updateServiceRequest,
     resolveServiceRequest, deleteServiceRequest} from "../Controller/serviceController.js";
@@ -103,4 +104,7 @@ router.get('/rent-post', getALLrents);
 router.put('/rent-post/rentPostId', updateRentPost);
 router.delete('/rent-post/rentPostId', deleteRentPost);
 
+
+// POST: Add a new blood donation record
+router.post("/:id/blood-donation",addBloodDonation)
 export default router;
