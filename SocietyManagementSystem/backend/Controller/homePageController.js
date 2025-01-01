@@ -13,6 +13,22 @@ export const getStaff = async (req,res) => {
     }
 };
 
+<<<<<<< Updated upstream
+=======
+export const getAdmin = async(req,res) =>{
+    try{
+        const admin = await User.find({admin:true}).select('-password');
+        if(!admin){
+            throw new Error("No Admin Found")
+        }
+        res.status(200).json(admin);
+    } catch(error){
+        res.status(400).json({error:error.message})
+    }
+};
+
+
+>>>>>>> Stashed changes
 export const createHelpPost = async (req,res) => {
      try {
         const {help_descr} = req.body;
