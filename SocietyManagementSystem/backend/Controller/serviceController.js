@@ -16,19 +16,18 @@ export const postServiceRequest = async(req, res) => {
         if (!serviceType) { 
             return res.status(400).json({ error: 'Service Type is required' });
         } 
-
         const serviceReq = {
             user: userId,
             description: description,
-            serviceType: serviceType
+            serviceType: serviceType,
+            flatno: user.flatno
         };
         
         const newReq = await Service.create(serviceReq);
         return res.status(201).json({service:newReq,
             message: 'Service request posted successfully',
         redirectUrl: '/society/homepage/services'});
-        
-        
+            
     }catch(error){
         res.status(500).json({
             error: "Failed to post service request",
@@ -62,19 +61,22 @@ export const getServiceRequests = async (req, res) => {
                 default:
                     return res.status(400).json({ error: 'Invalid User Type' });
             }
-            serviceRequests = await Service.find({ serviceType: serviceType, resolve_status: false });
-            return res.status(200).json({serviceRequests});
+            serviceRequests = await Service.find({ serviceType: serviceType, resolve_status: false }).populate(
+                'user', 'name username'
+            );
         }else {
             if (user.usertype === 'resident') {
-                const serviceRequests = await Service.find({resolve_status: false}).populate({path: 'user', 
-                    match: { flatno: user.flatno }, select: 'name username flatno'});
-                
-                return res.status(200).json({serviceRequests});
+                serviceRequests = await Service.find({resolve_status: false, flatno: user.flatno}).populate({
+                    path: 'user', 
+                    select: 'name username'});
+
             } else if (user.admin) {
-                serviceRequests = await Service.find({ resolve_status: false });
-                return res.status(200).json({serviceRequests});
+                serviceRequests = await Service.find({ resolve_status: false }).populate(
+                    'user', 'name username'
+                );;
             }
-        }      
+        }  
+        return res.status(200).json({serviceRequests});    
     } catch (error) {
         res.status(500).json({ error: 'Internal Server Error' });
     }
@@ -82,23 +84,23 @@ export const getServiceRequests = async (req, res) => {
 
 export const updateServiceRequest = async (req,res) => {
     const userId = req.user.id;
-    const user = await User.find(userId);
+    const user = await User.findById(userId);
     const {serviceId} = req.params;
-    const {description} = req.body;
+    const {description} = await req.body;
     const service = await Service.findById(serviceId);
     try{
-        if (service.user.toString() !== userId || user.admin || service.user.flatno !== user.flatno){ //admin can not update the request
+        if (!service){
+            return res.status(404).json({message: `No data to be updated`,
+                redirectUrl: '/society/homepage/services'
+            })
+        }
+        if (service.user.toString() !== userId || user.admin || service.flatno !== user.flatno){ //admin can not update the request
             return res.status(403).json({message: `Unauthorized User`,
                 redirectUrl: '/society/homepage/services'
             })
         }
-        if (!content){
-            return res.status(204).json({message: `No data to be updated`,
-                redirectUrl: '/society/homepage/services'
-            })
-        }
-        if (!service){
-            return res.status(404).json({message: `No data to be updated`,
+        if (!description){
+            return res.status(400).json({message: `No data to be updated`,
                 redirectUrl: '/society/homepage/services'
             })
         }
@@ -115,7 +117,7 @@ export const updateServiceRequest = async (req,res) => {
 
 export const resolveServiceRequest = async(req,res) => {
     const userId = req.user.id;
-    const user = await User.find(userId);
+    const user = await User.findById(userId);
     const {serviceId} = req.params;
     
     const service = await Service.findById(serviceId);
@@ -151,7 +153,7 @@ export const deleteServiceRequest = async (req,res) => {
     const {serviceId} = req.params;
     const service = await Service.findById(serviceId);
     try{
-        if (service.user.toString() !== userId &&  !user.admin && service.user.flatno !== user.flatno){ 
+        if (service.user.toString() !== userId &&  !user.admin && service.flatno !== user.flatno){ 
             return res.status(403).json({message: `Unauthorized User`,
                 redirectUrl: '/society/homepage/services'
             })

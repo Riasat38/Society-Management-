@@ -16,7 +16,6 @@ router.get("/:id", (req, res) => {
     res.send("Admin Panel");
 });
 
-
 //Fetch all announcements
 router.get("/announcements", (req, res) => {
     try {

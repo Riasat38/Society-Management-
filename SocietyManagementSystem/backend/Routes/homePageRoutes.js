@@ -26,7 +26,7 @@ import { deleteRentPost, getALLrents, postRent, updateRentPost ,getAllLostAndFou
 //HomePage  router
 router.get("/",async (req,res) =>{ 
     const userId = req.user.id;
-    const user = await User.findById(userId)
+    const user = await User.findById(userId).select('-password');
 
     if (!user){
         res.status(400).json({error : `Could not find the user`}).redirect('/scoiety/login');
@@ -44,7 +44,7 @@ router.get('/services', getServiceRequests);
 
 router.post('/services/:serviceType', postServiceRequest);
 router.put('/services/:serviceId', async(req,res) =>{
-    const user = await User.findById(req.user.id)
+    const user = await User.findById(req.user.id).select('-password');
     if (user.usertype === 'resident'){
         await updateServiceRequest(req,res);
     } else if(user.usertype === 'maintenance'){
@@ -71,26 +71,24 @@ router.get('/visitor', showVisitorReq);
 
 router.post('/visitor', async (req,res) => {
     const userId = req.user.id;
-    const user = await User.findById(userId);
+    const user = await User.findById(userId).select('-password');
 
     if (user.usertype === 'resident') {
         await postVisitorReq(req, res);
     } else if (user.usertype === 'maintenance' && user.role === 'Gatekeeper') {
         await visitorNotify(req, res);    //gatekeeper notifying users about people 
     }else {
-        res.status(403).json({message : `Not auhtorized for this page`})
+        return res.status(403).json({message : `Not auhtorized for this page`});
     }
 });
 router.delete('/visitor/:visitorPostId', deleteVisitorReq); 
 router.put('/visitor/:visitorPostId/:action',async(req,res) => {
     const userId = req.user.id;
-    const user = await User.findById(userId);
-
+    const user = await User.findById(userId).select('-password');
     const { action } = req.params;
     if (action === 'update' && user.usertype === 'resident') {
         await updateVisitorReq(req, res);
     } else if(action === 'resolve' && user.usertype === 'maintenance' && user.role === 'Gatekeeper'){
-        console.log()
         await resolveVisitorReq(req, res);}
     else {
         return res.status(400).json({ message: 'Invalid action' });

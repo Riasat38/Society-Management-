@@ -129,7 +129,7 @@ export const deleteHelpPost = async (req, res) => {
     try {
         const helpPostId = req.params.postId;
         const userId = req.user.id;
-        const user = await User.findById(userId);
+        const user = await User.findById(userId).select('-password');
 
         const helpPost = await Help.findById(helpPostId);
         if (!helpPost) {
@@ -247,9 +247,9 @@ export const deleteComment = async (req, res) => {
 //bloodDonation
 export const addBloodDonation = async (req, res) => {
     const userId = req.user.id;
-    const user = await User.findById(userId); 
+    const user = await User.findById(userId).select('-password'); 
     try {
-        const {  bloodGroup,  lastBloodGiven} = await req.body;
+        const {  bloodGroup,  lastBloodGiven} =  req.body;
 
         if (!donorName ||  !bloodGroup || !lastBloodGiven) {
             return res.status(400).json({ error: "Missing required fields" });
@@ -285,7 +285,7 @@ export const getAvailableBloodDonor = async(req,res) => {
 export const getSingleBloodDonor = async(req,res) =>{
     try{
         const donor = await BloodDonation.findById(req.user.id).populate('user', "name username contactno flatno");
-    if (!user){
+    if (!donor){
         throw new Error("No user Found")
     }
     return res.status(200).json(donor)
@@ -295,7 +295,7 @@ export const getSingleBloodDonor = async(req,res) =>{
 };
 
 export const updateDonorInfo = async(req,res) => {
-    const {lastBloodGiven, availibility} = await req.body;
+    const {lastBloodGiven, availibility} =  req.body;
     try{
         if (!lastBloodGiven){
             throw new Error("No data given to be updated")

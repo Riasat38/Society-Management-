@@ -8,6 +8,7 @@ import moment from 'moment';
 export const postVisitorReq = async (req,res) => {
     try{
         const {delivery, deliveryType, expectedArrival, description } = req.body;
+        console.log(delivery, deliveryType, expectedArrival, description)
         const userId = req.user.id;
         const visitorData = {
             user : userId,
@@ -41,7 +42,7 @@ export const postVisitorReq = async (req,res) => {
 //route: "/visitor", method: GET, viewer: gatekeeper
 export const showVisitorReq = async (req,res) => {
     const userId = req.user.id;
-    const user = await User.findById(userId);
+    const user = await User.findById(userId).select('-password');
     try{
         
         if ((user.usertype === 'maintenance' &&user.role === "Gatekeeper") || user.admin){
@@ -73,7 +74,7 @@ export const updateVisitorReq = async (req,res) => {
         const userId = req.user.id;
         const user = await User.findById(userId);
 
-        const visitorReq = await Visitor.findById(visitorPostId);
+        const visitorReq = await Visitor.findById(visitorPostId).select('-password');
         if (!visitorReq) {
             return res.status(404).json({
                 message: 'Visitor request not found',
@@ -112,7 +113,7 @@ export const deleteVisitorReq = async (req, res) => {
         const { visitorPostId } = req.params;
         const userId = req.user.id;  // Assuming you have a middleware to set req.userId
         const visitorReq = await Visitor.findById(visitorPostId);
-        const user = await User.findById(userId);
+        const user = await User.findById(userId).select('-password');
         if (!visitorReq) {
             return res.status(404).json({
                 message: 'Visitor request not found',
@@ -143,7 +144,7 @@ export const deleteVisitorReq = async (req, res) => {
 export const resolveVisitorReq = async (req, res) => {
     try {
         const { visitorPostId } = req.params;
-
+        const {resolve} = req.body;
         const userId = req.user.id;  
         const visitor_obj = await Visitor.findById(visitorPostId).populate('user', 'name email username flatno');
         const user = await User.findById(userId);
@@ -166,7 +167,7 @@ export const resolveVisitorReq = async (req, res) => {
             });
         }
          
-        visitor_obj.resolve_status = true;
+        visitor_obj.resolve_status = resolve;
         if (!visitor_obj.destination) {  
             if (user)  visitor_obj.destination = visitor_obj.user.flatno;  
         };
@@ -198,9 +199,9 @@ export const resolveVisitorReq = async (req, res) => {
 // route : "/visitor/notify", method : POST, viewer: gatekeeper
 export const visitorNotify = async (req, res) => {
     const userId = req.user.id;
-    const user = await User.findById(userId);
-    const {description, delivery,deliverytype, guestname,guests, destination,contact} = req.body;
-
+    const user = await User.findById(userId).select('-password');
+    const { description, delivery, deliverytype, guestname, guests, destination, contact } =  req.body;
+    
     if (!guests || !destination || !contact ){ 
         return res.status(400).json({
             message: 'Required data missing',
@@ -226,21 +227,21 @@ export const visitorNotify = async (req, res) => {
             contact: contact
         };
         const guest = await Visitor.create(visitorData);
-        const to_whom = await User.find({usertype: "resident", flatno: destination}).lean();
+        const to_whom = await User.find({usertype: "resident", flatno: destination});
         if (!to_whom){
             return res.status(404).json({message:`No users in that flat. No where to go.`})
         }
+        console.log(to_whom);
         let message;
-        for(let person in to_whom){
-            const email = person.email;
+        to_whom.forEach(async (person) => { 
             if (delivery){
                 message = `Dear ${person.name},\n There is a ${guest.deliveryType} intended for ${person.flatno}.`}
             else{
                 message = `Dear ${person.name},\n ${guest.guestname} guest/guests intended for ${person.flatno}.`}
             message += `notified by ${user.name}`;
-            await sendNotification(email, "Visitor/Guest Arrival" ,message);
-        }          
-        res.status(200).json({redirectUrl:'society/homepage/visitor'});
+            await sendNotification(person.email, "Visitor/Guest Arrival" ,message);
+        }   )       
+        return res.status(200).json({redirectUrl:'society/homepage/visitor'});
     }catch(error){
         return res.status(500).json(error);
     } 
