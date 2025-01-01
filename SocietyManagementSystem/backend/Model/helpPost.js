@@ -5,7 +5,7 @@ const commentSchema = new mongoose.Schema({
      user: {
          type: mongoose.Schema.Types.ObjectId, 
          ref: 'User',
-          required: true },
+         required: true },
      content: {
          type: String,
          required: true,
@@ -27,7 +27,10 @@ const helpSchema = new mongoose.Schema({
         ref: 'User', 
         required: true
     },
-    posdtedAt: { type: Date, default: Date.now},
+    bloodDonation:{
+        type: Boolean,
+        default:false
+    },
     resolve_status:{
         type: Boolean,
         default: false
@@ -36,16 +39,16 @@ const helpSchema = new mongoose.Schema({
 },
 {timestamps : true});
 
-helpSchema.pre('save', function (next) { 
-    if (this.resolve_status) { 
-        this.remove() 
-        .then(() => { 
-            console.log('Help post and its comments have been deleted'); 
-            next(); }) 
-            .catch(error => next(error)); 
-        } else { 
-            next(); 
-        } 
+helpSchema.post('save', async function (doc, next) {
+    try {
+        if (doc.resolve_status) {
+            await doc.constructor.deleteOne({ _id: doc._id });
+            console.log('Help post and its comments have been deleted');
+        }
+        next();
+    } catch (error) {
+        next(error);
+    }
 });
 
 export default mongoose.model("Help", helpSchema);

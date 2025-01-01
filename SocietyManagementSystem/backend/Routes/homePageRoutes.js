@@ -6,106 +6,160 @@ import express from "express";
 import User from "../Model/userModel.js";
 const router = express.Router();
 //controllers
-import {getStaff,createHelpPost,getPosts, getSinglePost, resolveHelpPost,
-    deleteHelpPost,addCommentToHelpPost, updateComment, deleteComment
-} from "../Controller/homePageController.js";
 
+import {getStaffAndResident,getAdmin,createHelpPost,getPosts, getSinglePost, updateORresolveHelpPost,
+    deleteHelpPost,addCommentToHelpPost, updateComment, deleteComment,
+    addBloodDonation,getAvailableBloodDonor, getSingleBloodDonor, updateDonorInfo,
+} from "../Controller/homePageController.js";
+import {getServiceRequests, postServiceRequest, updateServiceRequest,
+    resolveServiceRequest, deleteServiceRequest} from "../Controller/serviceController.js";
 import { postVisitorReq, showVisitorReq, updateVisitorReq, 
-    deleteVisitorReq, resolveVisitorReq } from "../Controller/visitorController.js";
+    deleteVisitorReq, resolveVisitorReq, visitorNotify} from "../Controller/visitorController.js";
 
 import {getAllAnnouncements} from "../Controller/announcementController.js";
-
+import { deleteRentPost, getALLrents, postRent, updateRentPost ,getAllLostAndFound,
+    createLostAndFound,
+    updateLostAndFoundStatus,
+    deleteLostAndFound,} from "../Controller/misc.js";
 
 
 //HomePage  router
-router.get("/:id",async (req,res) =>{ 
-    const userId = req.params.id;
-    const user = await User.findById(userId)
+router.get("/",async (req,res) =>{ 
+    const userId = req.user.id;
+    const user = await User.findById(userId).select('-password');
 
     if (!user){
-        res.status(400).json({error : `Could not find the user`}).redirect('/scoiet/login');
+        res.status(400).json({error : `Could not find the user`}).redirect('/scoiety/login');
     }
     const notice = getAllAnnouncements();
     res.status(200).json({user, notice});
 });
 
 //staff directory
-router.get('/:id/staff', async (req,res) => {
-    const staff_list_obj = await getStaff();
-    if (!staff_list_obj){
-        res.status(400).json({msg :"Problem finding staff records"});
-    }
-    return res.status(200).json(staff_list_obj);
-});
-
+router.get('/staff', getStaffAndResident);
+router.get('/admin', getAdmin);
 
 // Services route
-router.get('/:id/services/', async (req, res) => {
-    const userId = req.params.id;
-    try {
-        const user = await User.findById(userId);
-        if (!user) {
-            return res.status(400).json({ error: 'Could not find the user' });
-        }
-        res.status(200).send(`Services for User ID: ${userId}`);
-    } catch (error) {
-        res.status(500).json({ error: 'Internal Server Error' });
-    }
-});
+router.get('/services', getServiceRequests); 
 
-router.post('/:id/services/:serviceType', async (req, res) => {
-    const type = req.params.serviceType;
-    postServiceRequest(req, res);
-    if (type === 'Electrician'){
-        res.status(200).send('Electrician Service');
-    }
-    else if (type === 'Plumber'){
-        ;
-    }
-    else if (type === 'Other'){
-        res.status(200).send('Other Service');
-    }
-    else{
-        res.status(400).send('Invalid Service Type');
+router.post('/services/:serviceType', postServiceRequest);
+router.put('/services/:serviceId', async(req,res) =>{
+    const user = await User.findById(req.user.id).select('-password');
+    if (user.usertype === 'resident'){
+        await updateServiceRequest(req,res);
+    } else if(user.usertype === 'maintenance'){
+        await resolveServiceRequest(req,res);
     }
 });
+router.delete('/services/:serviceId',deleteServiceRequest);
+
 
 //help wall
-router.get('/:id/wall', getPosts);
-router.post('/:id/wall', createHelpPost);
-router.put('/:id/wall/:postid/:action', (req,res) => {
-    const { action } = req.params;
-    if (action === 'resolve') {
-        resolveHelpPost(req, res);
-    } else if (action === 'update') {
-        updateHelpPost(req, res);
-    } else {
-        return res.status(400).json({ message: 'Invalid action' });
-    }
-}); 
-router.delete('/:id/wall/:postId', deleteHelpPost);
+router.get('/wall', getPosts);
+router.post('/wall', createHelpPost);
+router.put('/wall/:postId/:modifyType', updateORresolveHelpPost); //only the user who has posted can update or resolve it
+router.delete('/wall/:postId', deleteHelpPost);//admin can delete the post
 
-router.get('/:id/wall/:postId', getSinglePost); //showing a single post with comments
+router.get('/wall/:postId', getSinglePost); //showing a single post with comments
 //comments
-router.post('/:id/wall/:helpPostId/comment', addCommentToHelpPost);
-router.put('/:id/wall/:helpPostId/comment/:commentId', updateComment)
-router.delete('/:id/wall/:helpPostId/comment/:commentId', deleteComment)
+router.post('/wall/:helpPostId/comment', addCommentToHelpPost);
+router.put('/wall/:helpPostId/comment/:commentId', updateComment)
+router.delete('/wall/:helpPostId/comment/:commentId', deleteComment)
 
 //requesting for a visitor to the gatekeep
-router.get('/:id/visitor', showVisitorReq); //when visited the route visiting request will be shown grouped by flat.
-router.post('/:id/visitor', postVisitorReq);
-router.delete('/:id/visitor/:visitorId', deleteVisitorReq); 
-router.put('/:id/visitor/:visitorId',async(req,res) => {
-    const userId = req.params.id;
-    const user = await User.findById(userId);
+router.get('/visitor', showVisitorReq); 
 
+router.post('/visitor', async (req,res) => {
+    const userId = req.user.id;
+    const user = await User.findById(userId).select('-password');
+
+    if (user.usertype === 'resident') {
+        await postVisitorReq(req, res);
+    } else if (user.usertype === 'maintenance' && user.role === 'Gatekeeper') {
+        await visitorNotify(req, res);    //gatekeeper notifying users about people 
+    }else {
+        return res.status(403).json({message : `Not auhtorized for this page`});
+    }
+});
+router.delete('/visitor/:visitorPostId', deleteVisitorReq); 
+router.put('/visitor/:visitorPostId/:action',async(req,res) => {
+    const userId = req.user.id;
+    const user = await User.findById(userId).select('-password');
     const { action } = req.params;
     if (action === 'update' && user.usertype === 'resident') {
-        updateVisitorReq(req, res);
+        await updateVisitorReq(req, res);
     } else if(action === 'resolve' && user.usertype === 'maintenance' && user.role === 'Gatekeeper'){
-        resolveVisitorReq(req, res);}
+        await resolveVisitorReq(req, res);}
     else {
         return res.status(400).json({ message: 'Invalid action' });
     }
 });
+
+router.post('/rent-post', postRent);
+router.get('/rent-post', getALLrents);
+router.put('/rent-post/rentPostId', updateRentPost);
+router.delete('/rent-post/rentPostId', deleteRentPost);
+
+// POST: Signing up for bood donation
+router.post("/blood-donation",addBloodDonation);
+
+router.get('/getBloodDonor', getAvailableBloodDonor);
+router.get("/singleDonor", getSingleBloodDonor);
+router.put('/singleDonor', updateDonorInfo);
+
+
+router.get('/:id/lostAndFound', (req, res) => {
+    try {
+        const items = getAllLostAndFound(req,res);
+        res.status(200).json(items);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to fetch lost and found items.', details: error.message });
+    }
+});
+
+// POST: Create a new Lost and Found item
+router.post('/:id/lostAndFound', (req, res) => {
+    try {
+        const newItem = createLostAndFound(req,res);
+        res.status(201).json({
+            message: 'Lost and Found item added successfully.',
+            data: newItem,
+        });
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to add new lost and found item.', details: error.message });
+    }
+});
+
+// PATCH: Update an existing Lost and Found item
+router.patch('/:id/lostAndFound/:itemId', (req, res) => {
+    try {
+        const updatedItem = updateLostAndFoundStatus(req,res)
+        if (updatedItem) {
+            res.status(200).json({
+                message: 'Lost and Found item updated successfully.',
+                data: updatedItem,
+            });
+        } else {
+            res.status(404).json({ error: 'Item not found.' });
+        }
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to update lost and found item.', details: error.message });
+    }
+});
+
+// DELETE: Delete a Lost and Found item
+router.delete('/:id/lostAndFound/:itemId', (req, res) => {
+    try {
+        const result = deleteLostAndFound(req, res);
+        if (result) {
+            res.status(200).json({ message: 'Lost and Found item deleted successfully.' });
+        } else {
+            res.status(404).json({ error: 'Item not found.' });
+        }
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to delete lost and found item.', details: error.message });
+    }
+});
+
+
 export default router;

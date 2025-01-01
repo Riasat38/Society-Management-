@@ -1,14 +1,25 @@
+import { name } from "ejs";
 import mongoose from "mongoose";
+import Apartment from "./apartmentdb.js";
 
 const userSchema = new mongoose.Schema({
+    name: {
+        type: String,
+        required:true
+    },
     username: {
         type: String,
-        required: true
+        required: true, 
+        unique: true,
     },
     email: {
         type: String,
         required: true,
         unique: true
+    },
+    password:{
+        type: String,
+        required: true
     },
     flatno: {
         type: String,
@@ -55,4 +66,15 @@ userSchema.pre('validate', function (next) {
     next();
 });
 
+userSchema.post('save', async function (doc, next) { 
+    if (doc.usertype === 'resident' && doc.flatno) { 
+        let flat = await Apartment.findOne({ flatno: doc.flatno });
+        if (!flat) { 
+            await Apartment.create({ flatno: doc.flatno, natives: [doc._id] }); 
+        } else {    
+            flat.natives.push(doc._id); 
+        } 
+        next(); 
+    }
+});
 export default mongoose.model("User", userSchema);
