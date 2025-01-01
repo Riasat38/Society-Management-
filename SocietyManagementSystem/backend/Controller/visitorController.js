@@ -53,7 +53,7 @@ export const showVisitorReq = async (req,res) => {
             return res.status(200).json(visitorQueue)
         }else{      //requests are filtered based on flatno
             const filtered_visitor_req = await Visitor.find({ resolve_status: false, $or: [ 
-                { 'user': user._id }, // Condition 1: User matches 
+                { 'user': userId }, 
                 { 'user.flatno': user.flatno }]
             }).populate('user', 'name username flatno').lean();
              
@@ -72,16 +72,16 @@ export const updateVisitorReq = async (req,res) => {
         const { visitorPostId } = req.params; 
         const { delivery, deliveryType, expectedArrival, description } = req.body;
         const userId = req.user.id;
-        const user = await User.findById(userId);
+        const user = await User.findById(userId).select('-password');
 
-        const visitorReq = await Visitor.findById(visitorPostId).select('-password');
+        const visitorReq = await Visitor.findById(visitorPostId).populate('user', 'flatno');
         if (!visitorReq) {
             return res.status(404).json({
                 message: 'Visitor request not found',
                 redirectUrl: '/society/homepage/visitor'
             });
         }
-        if (visitorReq.user.toString() !== userId) { 
+        if (visitorReq.user.toString() !== userId || visitorReq.user.flatno !== user.flatno) { 
             return res.status(403).json({ message: 'Unauthorized access', 
                 redirectUrl: '/society/homepage/visitor' }); 
         }
@@ -112,7 +112,7 @@ export const deleteVisitorReq = async (req, res) => {
     try {
         const { visitorPostId } = req.params;
         const userId = req.user.id;  // Assuming you have a middleware to set req.userId
-        const visitorReq = await Visitor.findById(visitorPostId);
+        const visitorReq = await Visitor.findById(visitorPostId).populate('user', 'flatno');
         const user = await User.findById(userId).select('-password');
         if (!visitorReq) {
             return res.status(404).json({
@@ -147,7 +147,7 @@ export const resolveVisitorReq = async (req, res) => {
         const {resolve} = req.body;
         const userId = req.user.id;  
         const visitor_obj = await Visitor.findById(visitorPostId).populate('user', 'name email username flatno');
-        const user = await User.findById(userId);
+        const user = await User.findById(userId).select('-password');
         if (!visitor_obj) {
             return res.status(404).json({
                 message: 'Visitor request not found',
