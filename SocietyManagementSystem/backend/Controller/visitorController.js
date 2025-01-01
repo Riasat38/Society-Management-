@@ -127,7 +127,7 @@ export const deleteVisitorReq = async (req, res) => {
             });
         }
 
-        await visitorReq.remove();
+        await visitorReq.deleteOne();
 
         return res.status(200).json({
             message: 'Visitor request deleted successfully',

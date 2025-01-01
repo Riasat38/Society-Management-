@@ -93,24 +93,26 @@ export const getSinglePost = async (req, res) => {
 
 export const updateORresolveHelpPost = async (req, res) => {
     try {
-        const {helpPostId,modifyType} = req.params.postId;
-        const { description} =  req.body;
+        const { postId,modifyType } = req.params;
+        console.log(postId,modifyType);
+        const helpPost = await Help.findById(postId);
+        
         const userId = req.user.id;
 
-        const helpPost = await Help.findById(helpPostId);
         if (!helpPost) {
             return res.status(404).json({ error: 'Help post not found' });
         }
         if (helpPost.user.toString() !== userId) {
             return res.status(403).json({ error: 'You are not authorized to update this post' });
         }
-        if (!description || description.trim() === '') {
-            return res.status(400).json({ error: 'Description cannot be empty' });
-        }
         if (helpPost.resolve_status.resolved) {
             return res.status(400).json({ error: 'Cannot update a resolved post' });
         }
         if (modifyType === 'update'){
+            const { description} =  req.body;
+            if (!description || description.trim() === '') {
+                return res.status(400).json({ error: 'Description cannot be empty' });
+            }
             helpPost.description = description;
         }
         if (modifyType === 'resolve'){
@@ -120,8 +122,8 @@ export const updateORresolveHelpPost = async (req, res) => {
 
         res.status(200).json({
             message: 'Help post updated successfully',
-            data: helpPost,
-            redirectUrl: `/society/homepage/wall/${helpPostId}`, 
+            helpPost,
+            redirectUrl: `/society/homepage/wall/${postId}`, 
         });
     } catch (error) {
         console.error('Error updating help post:', error);
@@ -142,7 +144,7 @@ export const deleteHelpPost = async (req, res) => {
         if (helpPost.user.toString() !== userId && !user.admin) { //admin can only delete a post
             return res.status(403).json({ error: 'You are not authorized to delete this post' });
         }
-        await helpPost.remove();
+        await helpPost.deleteOne();
         return res.status(302).json({
             message: 'Help post deleted successfully',
             redirectUrl: '/society/homepage/wall',
@@ -234,7 +236,7 @@ export const deleteComment = async (req, res) => {
             return res.status(403).json({ error: 'You are not authorized to delete this comment' });
         }
 
-        comment.remove();
+        comment.deleteOne();
         await helpPost.save();
 
         return res.status(200).json({
@@ -249,6 +251,7 @@ export const deleteComment = async (req, res) => {
 
 
 //bloodDonation
+//signing up for blood donation
 export const addBloodDonation = async (req, res) => {
     const userId = req.user.id;
     const user = await User.findById(userId).select('-password'); 

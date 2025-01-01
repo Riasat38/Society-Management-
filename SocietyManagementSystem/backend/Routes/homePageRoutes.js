@@ -57,7 +57,7 @@ router.delete('/services/:serviceId',deleteServiceRequest);
 //help wall
 router.get('/wall', getPosts);
 router.post('/wall', createHelpPost);
-router.put('/wall/:postid/:modifyType', updateORresolveHelpPost); //only the user who has posted can update or resolve it
+router.put('/wall/:postId/:modifyType', updateORresolveHelpPost); //only the user who has posted can update or resolve it
 router.delete('/wall/:postId', deleteHelpPost);//admin can delete the post
 
 router.get('/wall/:postId', getSinglePost); //showing a single post with comments
