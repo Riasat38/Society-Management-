@@ -31,9 +31,9 @@ export const getAdmin = async(req,res) =>{
 };
 export const createHelpPost = async (req,res) => {
      try {
-        const {help_descr} = req.body;
+        const {help_descr,bloodDonation} = req.body;
         const userId = req.user.id;
-        const user = await User.findById(userId); 
+        const user = await User.findById(userId).select('-password'); 
          if (!user) { 
             throw new Error("User not found"); 
         }  
@@ -42,11 +42,15 @@ export const createHelpPost = async (req,res) => {
                 redirectUrl : `/society/homepage/wall`
              }); 
         }
-        const helpPost = await Help.create({ description: help_descr, user: userId });
+        const helpPost = await Help.create({ 
+            user: userId, 
+            description: help_descr,
+            bloodDonation: bloodDonation        
+        });
         console.log('Help Post Created:', helpPost); 
         return res.status(201).json({
-            msg : "Post Created Successfully!",
-            data: helpPost,
+            message : "Post Created Successfully!",
+            helpPost,
             redirectUrl : "/society/homepage/wall"
         })
     } catch (error) { 
@@ -58,8 +62,8 @@ export const createHelpPost = async (req,res) => {
 export const getPosts = async(req,res) => {
     try{
         const userId = req.user.id;
-        const posts = await Help.find({resolve_status : false }).sort({ createdAt: -1 }) 
-        .populate('user','name email').lean();
+        const posts = await Help.find({resolve_status : false }).sort({ bloodDonation: -1 }) 
+        .populate('user','name flatno contactno').lean();
         if (!posts){
             return res.status(400).json({error : "No Posts Available"});
         }
@@ -73,7 +77,7 @@ export const getSinglePost = async (req, res) => {
     try {
       const userId = req.user.id;    // From middleware
       const { postId } = req.params;    // Get the specific post ID from the URL
-      const helpPost = await Help.findById(postId).populate('comments.user', 'name username').lean(); 
+      const helpPost = await Help.findById(postId).populate('comments.user', 'name flatno contactno').lean(); 
       
       if (!helpPost) {
         return res.status(404).json({ error: 'Help post not found' });
@@ -90,7 +94,7 @@ export const getSinglePost = async (req, res) => {
 export const updateORresolveHelpPost = async (req, res) => {
     try {
         const {helpPostId,modifyType} = req.params.postId;
-        const { description} = await req.body;
+        const { description} =  req.body;
         const userId = req.user.id;
 
         const helpPost = await Help.findById(helpPostId);
@@ -153,9 +157,9 @@ export const deleteHelpPost = async (req, res) => {
 export const addCommentToHelpPost = async (req, res) => { 
     try { 
         const { content } = req.body; 
-        const userId = req.user.id;  //req.body
+        const userId = req.user.id;  
         const {helpPostId} = req.params;
-        const helpPost = await Help.findById(helpPostId).populate('comments.user', 'name username');; 
+        const helpPost = await Help.findById(helpPostId).populate('comments.user', 'name');; 
         if (!helpPost) { 
             return res.status(404).json({ error: 'Help post not found' }); 
         }

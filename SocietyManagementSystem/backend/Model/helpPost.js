@@ -27,7 +27,10 @@ const helpSchema = new mongoose.Schema({
         ref: 'User', 
         required: true
     },
-    posdtedAt: { type: Date, default: Date.now},
+    bloodDonation:{
+        type: Boolean,
+        default:false
+    },
     resolve_status:{
         type: Boolean,
         default: false
