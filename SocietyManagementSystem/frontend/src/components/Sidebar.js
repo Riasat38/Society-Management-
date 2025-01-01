@@ -31,7 +31,7 @@ function Sidebar() {
       <div className="sidebar-content">
         <h3>Features</h3>
         <ul className="feature-list">
-          <li>Directory</li>
+          <li onClick={() => navigate('/directory')}>Directory</li>
           <li onClick={() => navigate('/maintenance')}>Maintenance</li>
           <li onClick={() => navigate('/classes')}>Enrichment Classes</li>
           <li onClick={() => navigate('/daycare')}>Daycare Service</li>
