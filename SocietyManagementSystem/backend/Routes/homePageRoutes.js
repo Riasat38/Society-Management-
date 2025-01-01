@@ -21,6 +21,7 @@ import { deleteRentPost, getALLrents, postRent, updateRentPost ,getAllLostAndFou
     createLostAndFound,
     updateLostAndFoundStatus,
     deleteLostAndFound,} from "../Controller/misc.js";
+import { addQuranClass, deleteQuranClass, updateQuranClass } from "../Controller/AlQuranController.js";
 
 
 //HomePage  router
@@ -160,6 +161,15 @@ router.delete('/:id/lostAndFound/:itemId', (req, res) => {
         res.status(500).json({ error: 'Failed to delete lost and found item.', details: error.message });
     }
 });
+
+
+router.post('/Quran', addQuranClass);
+
+// Route for updating an existing Quran class
+router.put('/Quran/:classId', updateQuranClass);
+
+// Route for deleting a Quran class
+router.delete('/Quran/:id', deleteQuranClass);
 
 
 export default router;
