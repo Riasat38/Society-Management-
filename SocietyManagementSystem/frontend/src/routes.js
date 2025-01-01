@@ -6,6 +6,7 @@ import Register from './components/Register';
 import Home from './components/Home';
 import Sidebar from './components/Sidebar';
 import Maintenance from './components/Maintenance';
+import VisitorFeaturePage from './pages/VisitorFeaturePage'
 
 const AppRoutes = () => {
   return (
@@ -17,6 +18,7 @@ const AppRoutes = () => {
       <Route path="/Home" element={<Home />} />
       <Route path="/Sidebar" element={<Sidebar />} />
       <Route path="/Maintenance" element={<Maintenance />} />
+      <Route path="/visitor" element={<VisitorFeaturePage />} />
     </Routes>
   );
 };

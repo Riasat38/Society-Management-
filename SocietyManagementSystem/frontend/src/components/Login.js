@@ -31,6 +31,7 @@ function Login() {
       });
 
       const data = await response.json();
+      localStorage.setItem('token', data.token);
       if (response.ok) {
         console.log(data.message);
         navigate('/home'); // Redirect to the home page

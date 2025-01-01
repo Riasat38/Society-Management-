@@ -13,6 +13,8 @@ import Daycare from './components/Daycare';
 import LocalSupport from './components/LocalSupport';
 import Fitness from './components/Fitness';
 import Feedback from './components/Feedback';
+import VisitorFeaturePage from './pages/VisitorFeaturePage'
+
 
 
 import './App.css';
@@ -36,8 +38,9 @@ const AppContent = () => {
             <Route path="/classes" element={<Classes />} />
             <Route path="/daycare" element={<Daycare />} />
             <Route path="/localsupport" element={<LocalSupport />} />
-            <Route path="/fitness" element={<Fitness />} /> 
+            <Route path="/fitness" element={<Fitness />} />
             <Route path="/feedback" element={<Feedback />} />
+            <Route path="/visitor" element={<VisitorFeaturePage />} />
           </Routes>
         </div>
       </div>
