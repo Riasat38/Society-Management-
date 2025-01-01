@@ -7,6 +7,7 @@ import LandingPage from './components/LandingPage';
 import Login from './components/Login';
 import Register from './components/Register';
 import Home from './components/Home';
+import Directory from './components/Directory';
 import Maintenance from './components/Maintenance';
 import Classes from './components/Classes';
 import Daycare from './components/Daycare';
@@ -32,6 +33,7 @@ const AppContent = () => {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/home" element={<Home />} />
+            <Route path="/directory" element={<Directory />} />
             <Route path="/maintenance" element={<Maintenance />} />
             <Route path="/classes" element={<Classes />} />
             <Route path="/daycare" element={<Daycare />} />
