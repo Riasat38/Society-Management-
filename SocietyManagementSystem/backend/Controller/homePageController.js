@@ -29,6 +29,7 @@ export const getAdmin = async(req,res) =>{
         res.status(400).json({error:error.message})
     }
 };
+
 export const createHelpPost = async (req,res) => {
      try {
         const {help_descr,bloodDonation} = req.body;

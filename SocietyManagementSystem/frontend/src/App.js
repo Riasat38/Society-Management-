@@ -7,12 +7,15 @@ import LandingPage from './components/LandingPage';
 import Login from './components/Login';
 import Register from './components/Register';
 import Home from './components/Home';
+import Directory from './components/Directory';
 import Maintenance from './components/Maintenance';
 import Classes from './components/Classes';
 import Daycare from './components/Daycare';
 import LocalSupport from './components/LocalSupport';
 import Fitness from './components/Fitness';
 import Feedback from './components/Feedback';
+import VisitorFeaturePage from './pages/VisitorFeaturePage'
+
 
 
 import './App.css';
@@ -32,12 +35,14 @@ const AppContent = () => {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/home" element={<Home />} />
+            <Route path="/directory" element={<Directory />} />
             <Route path="/maintenance" element={<Maintenance />} />
             <Route path="/classes" element={<Classes />} />
             <Route path="/daycare" element={<Daycare />} />
             <Route path="/localsupport" element={<LocalSupport />} />
-            <Route path="/fitness" element={<Fitness />} /> 
+            <Route path="/fitness" element={<Fitness />} />
             <Route path="/feedback" element={<Feedback />} />
+            <Route path="/visitor" element={<VisitorFeaturePage />} />
           </Routes>
         </div>
       </div>

@@ -31,7 +31,7 @@ function Sidebar() {
       <div className="sidebar-content">
         <h3>Features</h3>
         <ul className="feature-list">
-          <li>Directory</li>
+          <li onClick={() => navigate('/directory')}>Directory</li>
           <li onClick={() => navigate('/maintenance')}>Maintenance</li>
           <li onClick={() => navigate('/classes')}>Enrichment Classes</li>
           <li onClick={() => navigate('/daycare')}>Daycare Service</li>
@@ -43,9 +43,12 @@ function Sidebar() {
           <li>Marketplace</li>
           <li onClick={() => navigate('/fitness')}>Fitness and Mental Health Care</li>
           <li onClick={() => navigate('/feedback')}>Feedback, Complaints and Suggestions</li>
+          <li onClick={() => navigate('/visitor')}>Visitor</li>
+
+
           <li className="separator"></li>
-          
-          
+
+
           <li onClick={() => navigate('/profile')}>My Profile</li>
           <li onClick={handleLogout}>Logout</li>
         </ul>
