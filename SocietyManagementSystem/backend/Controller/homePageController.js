@@ -279,8 +279,9 @@ export const addBloodDonation = async (req, res) => {
 
 export const getAvailableBloodDonor = async(req,res) => {
     try{
-        const available_donors = await BloodDonation.find({available:true}).populate('donor', 'name contactno email flatno')
-        if (!available_donors){
+        const available_donors = await BloodDonation.find({available:true}).populate('donor', 'name contactno email flatno');
+        console.log(available_donors);
+        if (available_donors.length === 0){
             throw new Error("No available Donors Found")
         }
         return res.status(200).json(available_donors);

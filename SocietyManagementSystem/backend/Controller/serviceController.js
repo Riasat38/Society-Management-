@@ -117,7 +117,7 @@ export const updateServiceRequest = async (req,res) => {
 
 export const resolveServiceRequest = async(req,res) => {
     const userId = req.user.id;
-    const user = await User.findById(userId);
+    const user = await User.findById(userId).select('-password');
     const {serviceId} = req.params;
     
     const service = await Service.findById(serviceId);
@@ -163,7 +163,7 @@ export const deleteServiceRequest = async (req,res) => {
                 redirectUrl: '/society/homepage/services'
             })
         }
-        await service.remove();
+        await service.deleteOne();
         return res.status(200).json({message:`Service Request Deleted`,
             redirectUrl: `/society/homepage/services`}
         )
