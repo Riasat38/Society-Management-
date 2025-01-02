@@ -43,9 +43,12 @@ function Sidebar() {
           <li>Marketplace</li>
           <li onClick={() => navigate('/fitness')}>Fitness and Mental Health Care</li>
           <li onClick={() => navigate('/feedback')}>Feedback, Complaints and Suggestions</li>
+          <li onClick={() => navigate('/visitor')}>Visitor</li>
+
+
           <li className="separator"></li>
-          
-          
+
+
           <li onClick={() => navigate('/profile')}>My Profile</li>
           <li onClick={handleLogout}>Logout</li>
         </ul>
