@@ -263,8 +263,7 @@ export const addBloodDonation = async (req, res) => {
         }
 
         const donorInfo= await BloodDonation.create({
-            donorName: userId,
-            donorContact: user.contactno,
+            donor: userId,
             bloodGroup: bloodGroup,
             lastBloodGiven: lastBloodGiven,
         });
