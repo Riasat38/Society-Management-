@@ -259,7 +259,7 @@ export const addBloodDonation = async (req, res) => {
     try {
         const {  bloodGroup,  lastBloodGiven} =  req.body;
 
-        if (!donorName ||  !bloodGroup || !lastBloodGiven) {
+        if (!bloodGroup || !lastBloodGiven) {
             return res.status(400).json({ error: "Missing required fields" });
         }
 
@@ -268,9 +268,9 @@ export const addBloodDonation = async (req, res) => {
             bloodGroup: bloodGroup,
             lastBloodGiven: lastBloodGiven,
         });
-
+        await donorInfo.populate('donor','name email contactno flatno');
         console.log('Blood Donation Record Created:', donorInfo);
-        res.status(201).json({ message: "Blood donation record added successfully",donorInfo });
+        return res.status(201).json({ message: "Blood donation record added successfully",donorInfo });
     } catch (error) {
         console.error('Error adding blood donation record:', error);
         res.status(500).json({ error: "Internal Server Error" });
