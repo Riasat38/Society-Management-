@@ -259,19 +259,18 @@ export const addBloodDonation = async (req, res) => {
     try {
         const {  bloodGroup,  lastBloodGiven} =  req.body;
 
-        if (!donorName ||  !bloodGroup || !lastBloodGiven) {
+        if (!bloodGroup || !lastBloodGiven) {
             return res.status(400).json({ error: "Missing required fields" });
         }
 
         const donorInfo= await BloodDonation.create({
-            donorName: userId,
-            donorContact: user.contactno,
+            donor: userId,
             bloodGroup: bloodGroup,
             lastBloodGiven: lastBloodGiven,
         });
-
+        await donorInfo.populate('donor','name email contactno flatno');
         console.log('Blood Donation Record Created:', donorInfo);
-        res.status(201).json({ message: "Blood donation record added successfully",donorInfo });
+        return res.status(201).json({ message: "Blood donation record added successfully",donorInfo });
     } catch (error) {
         console.error('Error adding blood donation record:', error);
         res.status(500).json({ error: "Internal Server Error" });
@@ -280,8 +279,9 @@ export const addBloodDonation = async (req, res) => {
 
 export const getAvailableBloodDonor = async(req,res) => {
     try{
-        const available_donors = await BloodDonation.find({available:true}).populate('donor', 'name contactno email flatno')
-        if (!available_donors){
+        const available_donors = await BloodDonation.find({available:true}).populate('donor', 'name contactno email flatno');
+        console.log(available_donors);
+        if (available_donors.length === 0){
             throw new Error("No available Donors Found")
         }
         return res.status(200).json(available_donors);

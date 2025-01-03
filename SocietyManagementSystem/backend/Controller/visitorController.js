@@ -51,12 +51,12 @@ export const showVisitorReq = async (req,res) => {
                 path: 'user',
                 select: "name username flatno"}).sort({ createdAt: 1 }).lean();
             return res.status(200).json(visitorQueue)
-        }else{      //requests are filtered based on flatno
+        } else{      //requests are filtered based on flatno
             const filtered_visitor_req = await Visitor.find({ resolve_status: false, $or: [ 
                 { 'user': userId }, 
                 { 'user.flatno': user.flatno }]
             }).populate('user', 'name username flatno').lean();
-             
+              
             return res.status(200).json(filtered_visitor_req);
         }      
     }catch (error){
