@@ -1,19 +1,14 @@
 .blood-donation-page {
   display: flex;
-  flex-direction: column; /* Ensure the page can scroll vertically */
+  flex-direction: column;
+  padding-left: 250px; /* Ensure content does not overlap sidebar */
   height: 100vh; /* Ensure the page takes up the full viewport height */
   overflow-y: auto; /* Enable vertical scrolling if content overflows */
 }
 
-.sidebar {
-  flex: 1;
-}
-
 .content {
-  flex: 4;
-  display: flex;
-  flex-direction: column;
-  padding-left: 20px; /* Ensure content does not overlap sidebar */
+  flex: 1;
+  padding: 20px; /* Add padding for better spacing */
 }
 
 .top-section {
