@@ -62,17 +62,17 @@ export const getServiceRequests = async (req, res) => {
                     return res.status(400).json({ error: 'Invalid User Type' });
             }
             serviceRequests = await Service.find({ serviceType: serviceType, resolve_status: false }).populate(
-                'user', 'name contactno flatno'
+                'user', 'name username'
             );
         }else {
             if (user.usertype === 'resident') {
-                serviceRequests = await Service.find({resolve_status: false, flatno: user.flatno}).populate(
-                    'user', 'name contactno flatno'
-                );
+                serviceRequests = await Service.find({resolve_status: false, flatno: user.flatno}).populate({
+                    path: 'user', 
+                    select: 'name username'});
 
             } else if (user.admin) {
                 serviceRequests = await Service.find({ resolve_status: false }).populate(
-                    'user', 'name contactno flatno'
+                    'user', 'name username'
                 );;
             }
         }  
