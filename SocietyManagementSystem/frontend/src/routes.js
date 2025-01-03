@@ -6,6 +6,7 @@ import Register from './components/Register';
 import Home from './components/Home';
 import Sidebar from './components/Sidebar';
 import Maintenance from './components/Maintenance';
+import Helpwall from './components/Helpwall';
 import VisitorFeaturePage from './pages/VisitorFeaturePage'
 
 const AppRoutes = () => {
@@ -18,6 +19,7 @@ const AppRoutes = () => {
       <Route path="/Home" element={<Home />} />
       <Route path="/Sidebar" element={<Sidebar />} />
       <Route path="/Directory" element={<Directory />} />
+      <Route path="/Helpwall" element={<Helpwall />} />
       <Route path="/Maintenance" element={<Maintenance />} />
       <Route path="/visitor" element={<VisitorFeaturePage />} />
     </Routes>

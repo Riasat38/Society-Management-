@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import Sidebar from './Sidebar.js';
+import Sidebar from './Sidebar';
 import './Helpwall.css';
 import { getUserFromStorage } from './utils.js';
 
@@ -11,21 +11,21 @@ const HelpWall = () => {
   const [bloodDonation, setBloodDonation] = useState(false);
 
   useEffect(() => {
-    const userData = getUserFromStorage();
+    const token = getUserFromStorage();
 
-    if (!userData) {
+    if (!token) {
       // Redirect to login if no user is found
       window.location.href = '/society/login';
       return;
     }
 
-    setUser(userData); // Setting the user data in the user state
+    setUser({ token }); // Setting the token in the user state
 
     const fetchPosts = async () => {
       try {
         const response = await axios.get('http://localhost:4069/society/homepage/wall', {
           headers: {
-            'Authorization': `Bearer ${userData.token}`,
+            'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
           }
         });
@@ -50,7 +50,7 @@ const HelpWall = () => {
           'Content-Type': 'application/json'
         }
       });
-      
+
       console.log('Create post response:', response.data);
       setPosts([...posts, response.data.helpPost]);
       setHelpDescr('');
@@ -58,6 +58,7 @@ const HelpWall = () => {
       console.log('Help post created:', response.data.helpPost);
     } catch (error) {
       console.error('Failed to create post:', error);
+      alert(`Failed to create post: ${error.response ? error.response.data.error : error.message}`);
     }
   };
 
@@ -127,6 +128,7 @@ const HelpWall = () => {
       });
 
       setPosts(posts.map(post => post._id === postId ? response.data.helpPost : post));
+      
       console.log('Comment added:', response.data.helpPost);
     } catch (error) {
       console.error('Failed to add comment:', error);
@@ -155,7 +157,7 @@ const HelpWall = () => {
     const token = user.token;
 
     try {
-      const response = await axios.delete(`http://localhost:4069/society/homepage/wall/${postId}/comment/${commentId}`, {
+      const response = await axios.delete(`http://localhost:4069/society/homepage/wall/${postId}/comments/${commentId}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -175,10 +177,10 @@ const HelpWall = () => {
         <div key={post._id} className="post-item">
           <p><strong>Description:</strong> {post.description}</p>
           {post.bloodDonation && <p><strong>Blood Donation Needed</strong></p>}
-          <p><strong>Posted by:</strong> {post.user.name}</p>
-          <p><strong>Flat Number:</strong> {post.user.flatno}</p>
-          <p><strong>Contact Number:</strong> {post.user.contactno}</p>
-          {user.id === post.user._id && !post.resolve_status && (
+          <p><strong>Posted by:</strong> {post.user?.name}</p>
+          <p><strong>Flat Number:</strong> {post.user?.flatno}</p>
+          <p><strong>Contact Number:</strong> {post.user?.contactno}</p>
+          {user.id === post.user?._id && !post.resolve_status && (
             <div>
               <button onClick={() => handleUpdatePost(post._id, prompt('Update description:', post.description))}>Update</button>
               <button onClick={() => handleDeletePost(post._id)}>Delete</button>
@@ -189,8 +191,8 @@ const HelpWall = () => {
             {post.comments.map(comment => (
               <div key={comment._id} className="comment-item">
                 <p>{comment.content}</p>
-                <p><strong>By:</strong> {comment.user.name}</p>
-                {user.id === comment.user._id && (
+                <p><strong>By:</strong> {comment.user?.name}</p>
+                {user.id === comment.user?._id && (
                   <div>
                     <button onClick={() => handleUpdateComment(post._id, comment._id, prompt('Update comment:', comment.content))}>Update</button>
                     <button onClick={() => handleDeleteComment(post._id, comment._id)}>Delete</button>
@@ -210,19 +212,25 @@ const HelpWall = () => {
       <Sidebar />
       <div className="main-content">
         <h2>HelpWall</h2>
-        <div className="create-post-form">
-          <h3>Create a Help Post</h3>
-          <label>
-            Description:
-            <textarea value={helpDescr} onChange={(e) => setHelpDescr(e.target.value)}></textarea>
-          </label>
-          <label>
-            Blood Donation Needed:
-            <input type="checkbox" checked={bloodDonation} onChange={(e) => setBloodDonation(e.target.checked)} />
-          </label>
-          <button onClick={handleCreatePost}>Create Post</button>
+        <div className="content-sections">
+          <div className="create-post-section">
+            <div className="create-post-form">
+              <h3>Create a Help Post</h3>
+              <label>
+                Description:
+                <textarea value={helpDescr} onChange={(e) => setHelpDescr(e.target.value)}></textarea>
+              </label>
+              <label>
+                Blood Donation Needed:
+                <input type="checkbox" checked={bloodDonation} onChange={(e) => setBloodDonation(e.target.checked)} />
+              </label>
+              <button onClick={handleCreatePost}>Create Post</button>
+            </div>
+          </div>
+          <div className="view-posts-section">
+            {renderPosts()}
+          </div>
         </div>
-        {renderPosts()}
       </div>
     </div>
   );
