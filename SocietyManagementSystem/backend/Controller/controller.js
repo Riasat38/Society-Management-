@@ -126,8 +126,6 @@ export const logoutUser = async (req, res) => {
     });
   }
 };
-
-
 export const getUser = async (req, res) => {
   try {
       const token = req.headers.authorization.split(' ')[1];
