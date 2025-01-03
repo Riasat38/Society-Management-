@@ -34,7 +34,7 @@ body, html {
 
 .create-post-section h3,
 .view-posts-section h3 {
-  margin-bottom: 10px;
+  margin-bottom: 50px;
 }
 
 .create-post-section label,
@@ -59,11 +59,13 @@ body, html {
   color: #fff;
   border: none;
   cursor: pointer;
+  position: center;
 }
 
 .create-post-section button:hover,
 .view-posts-section button:hover {
   background-color: #0d47a1;
+  display: center
 }
 
 .posts-list .post-item {

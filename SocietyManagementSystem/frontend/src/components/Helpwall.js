@@ -1,5 +1,3 @@
-'use strict';
-
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Sidebar from './Sidebar';
@@ -11,7 +9,6 @@ const HelpWall = () => {
   const [posts, setPosts] = useState([]);
   const [helpDescr, setHelpDescr] = useState('');
   const [bloodDonation, setBloodDonation] = useState(false);
-  const [commentContent, setCommentContent] = useState(''); // State for comment content
 
   useEffect(() => {
     const token = getUserFromStorage();
@@ -119,7 +116,7 @@ const HelpWall = () => {
     }
   };
 
-  const handleAddComment = async (postId) => {
+  const handleAddComment = async (postId, commentContent) => {
     const token = user.token;
 
     try {
@@ -131,7 +128,7 @@ const HelpWall = () => {
       });
 
       setPosts(posts.map(post => post._id === postId ? response.data.helpPost : post));
-      setCommentContent(''); // Clear comment content after submission
+      
       console.log('Comment added:', response.data.helpPost);
     } catch (error) {
       console.error('Failed to add comment:', error);
@@ -176,49 +173,39 @@ const HelpWall = () => {
 
   const renderPosts = () => (
     <div className="posts-list">
-      {posts.map(post => {
-        console.log('Rendering post:', post); // Debugging log
-        return (
-          <div key={post._id} className="post-item">
-            <p><strong>Description:</strong> {post.description || 'No description available'}</p>
-            {post.bloodDonation && <p><strong>Blood Donation Needed</strong></p>}
-            <p><strong>Posted by:</strong> {post.user?.name || 'Anonymous'}</p>
-            <p><strong>Flat Number:</strong> {post.user?.flatno || 'N/A'}</p>
-            <p><strong>Contact Number:</strong> {post.user?.contactno || 'N/A'}</p>
-            {user.id === post.user?._id && !post.resolve_status && (
-              <div>
-                <button onClick={() => handleUpdatePost(post._id, prompt('Update description:', post.description))}>Update</button>
-                <button onClick={() => handleDeletePost(post._id)}>Delete</button>
-                <button onClick={() => handleResolvePost(post._id)}>Resolve</button>
-              </div>
-            )}
-            <div className="comments-section">
-              {post.comments?.map(comment => (
-                <div key={comment._id} className="comment-item">
-                  <p>{comment.content || 'No content'}</p>
-                  <p><strong>By:</strong> {comment.user?.name || 'Anonymous'}</p>
-                  {user.id === comment.user?._id && (
-                    <div>
-                      <button onClick={() => handleUpdateComment(post._id, comment._id, prompt('Update comment:', comment.content))}>Update</button>
-                      <button onClick={() => handleDeleteComment(post._id, comment._id)}>Delete</button>
-                    </div>
-                  )}
-                </div>
-              ))}
-              <textarea
-                placeholder="Add a comment"
-                value={commentContent}
-                onChange={(e) => setCommentContent(e.target.value)}
-              ></textarea>
-              <button onClick={() => handleAddComment(post._id)}>Submit Comment</button>
+      {posts.map(post => (
+        <div key={post._id} className="post-item">
+          <p><strong>Description:</strong> {post.description}</p>
+          {post.bloodDonation && <p><strong>Blood Donation Needed</strong></p>}
+          <p><strong>Posted by:</strong> {post.user?.name}</p>
+          <p><strong>Flat Number:</strong> {post.user?.flatno}</p>
+          <p><strong>Contact Number:</strong> {post.user?.contactno}</p>
+          {user.id === post.user?._id && !post.resolve_status && (
+            <div>
+              <button onClick={() => handleUpdatePost(post._id, prompt('Update description:', post.description))}>Update</button>
+              <button onClick={() => handleDeletePost(post._id)}>Delete</button>
+              <button onClick={() => handleResolvePost(post._id)}>Resolve</button>
             </div>
+          )}
+          <div className="comments-section">
+            {post.comments.map(comment => (
+              <div key={comment._id} className="comment-item">
+                <p>{comment.content}</p>
+                <p><strong>By:</strong> {comment.user?.name}</p>
+                {user.id === comment.user?._id && (
+                  <div>
+                    <button onClick={() => handleUpdateComment(post._id, comment._id, prompt('Update comment:', comment.content))}>Update</button>
+                    <button onClick={() => handleDeleteComment(post._id, comment._id)}>Delete</button>
+                  </div>
+                )}
+              </div>
+            ))}
+            <textarea placeholder="Add a comment" onBlur={(e) => handleAddComment(post._id, e.target.value)}></textarea>
           </div>
-        );
-      })}
+        </div>
+      ))}
     </div>
   );
-  
-  
 
   return (
     <div className="page-container">
