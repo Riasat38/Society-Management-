@@ -15,7 +15,7 @@ import LocalSupport from './components/LocalSupport';
 import Fitness from './components/Fitness';
 import Feedback from './components/Feedback';
 import VisitorFeaturePage from './pages/VisitorFeaturePage'
-
+import HelpWall from './components/HelpWallPage';
 
 
 import './App.css';
@@ -39,6 +39,7 @@ const AppContent = () => {
             <Route path="/maintenance" element={<Maintenance />} />
             <Route path="/classes" element={<Classes />} />
             <Route path="/daycare" element={<Daycare />} />
+            <Route path="/helpwall" element={<HelpWall />} />
             <Route path="/localsupport" element={<LocalSupport />} />
             <Route path="/fitness" element={<Fitness />} />
             <Route path="/feedback" element={<Feedback />} />
