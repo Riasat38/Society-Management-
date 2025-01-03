@@ -92,9 +92,10 @@ export const getSinglePost = async (req, res) => {
 };
 
 
-export const updateORresolveHelpPost = async (req, res) => {
+export const updateHelpPost = async (req, res) => {
     try {
-        const { postId,modifyType } = req.params;
+        const { postId } = req.params;
+        const { description} =  req.body;
         console.log(postId,modifyType);
         const helpPost = await Help.findById(postId);
         
@@ -109,16 +110,12 @@ export const updateORresolveHelpPost = async (req, res) => {
         if (helpPost.resolve_status.resolved) {
             return res.status(400).json({ error: 'Cannot update a resolved post' });
         }
-        if (modifyType === 'update'){
-            const { description} =  req.body;
-            if (!description || description.trim() === '') {
-                return res.status(400).json({ error: 'Description cannot be empty' });
-            }
-            helpPost.description = description;
+        
+        if (!description || description.trim() === '') {
+            return res.status(400).json({ error: 'Description cannot be empty' });
         }
-        if (modifyType === 'resolve'){
-            helpPost.resolve_status = true
-        }
+            
+        helpPost.description = description;
         await helpPost.save();
 
         res.status(200).json({
@@ -303,6 +300,7 @@ export const getSingleBloodDonor = async(req,res) =>{
 };
 
 export const updateDonorInfo = async(req,res) => {
+    const userId = req.user.id;
     const {lastBloodGiven, availibility} =  req.body;
     try{
         if (!lastBloodGiven){
@@ -311,7 +309,10 @@ export const updateDonorInfo = async(req,res) => {
         if (typeof(availibility) !== Boolean){
             throw new Error("Wrong Data type");
         }
-        const donor = await BloodDonation.findById(req.user.id).populate('user', "name username contactno flatno");
+        const donor = await BloodDonation.findOneAndUpdate({ donor: userId }, {
+            lastBloodGiven: lastBloodGiven,
+            available: availibility
+        }).populate('donor', "name username contactno flatno");
         if(!donor){
             throw new Error("No data found")
         }
