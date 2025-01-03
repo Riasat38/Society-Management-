@@ -31,10 +31,6 @@ const helpSchema = new mongoose.Schema({
         type: Boolean,
         default:false
     },
-    resolve_status:{
-        type: Boolean,
-        default: false
-    },
     comments: [commentSchema],
 },
 {timestamps : true});

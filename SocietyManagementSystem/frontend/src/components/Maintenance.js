@@ -1,169 +1,207 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import Sidebar from './Sidebar';
-import './Maintenance.css';
+import Sidebar from './Sidebar.js';
+import './Helpwall.css';
 import { getUserFromStorage } from './utils.js';
 
-const MaintenancePage = () => {
+const HelpWall = () => {
   const [user, setUser] = useState(null);
-  const [requests, setRequests] = useState([]);
-  const [serviceType, setServiceType] = useState('');
-  const [description, setDescription] = useState('');
+  const [posts, setPosts] = useState([]);
+  const [helpDescr, setHelpDescr] = useState('');
+  const [bloodDonation, setBloodDonation] = useState(false);
 
   useEffect(() => {
-    const token = getUserFromStorage();
+    const userData = getUserFromStorage();
 
-    if (!token) {
+    if (!userData) {
       // Redirect to login if no user is found
       window.location.href = '/society/login';
       return;
     }
 
-    setUser(token); // Setting the token in the user state
+    setUser(userData); // Setting the user data in the user state
 
-    const fetchData = async () => {
+    const fetchPosts = async () => {
       try {
-        const response = await axios.get('http://localhost:4069/society/homepage/services', {
+        const response = await axios.get('http://localhost:4069/society/homepage/wall', {
           headers: {
-            'Authorization': `Bearer ${token}`,
+            'Authorization': `Bearer ${userData.token}`,
             'Content-Type': 'application/json'
           }
         });
-        setRequests(response.data.requests);
-        console.log('Maintenance requests fetched:', response.data.requests);
+        setPosts(response.data);
+        console.log('Help posts fetched:', response.data);
       } catch (error) {
         console.error('Failed to fetch data:', error);
       }
     };
 
-    fetchData();
+    fetchPosts();
   }, []);
 
-  const handlePostRequest = async () => {
+  const handleCreatePost = async () => {
     const token = user.token;
-    const newRequest = { serviceType, description };
+    const newPost = { help_descr: helpDescr, bloodDonation };
 
     try {
-      const response = await axios.post(`http://localhost:4069/society/homepage/services/${serviceType}`, newRequest, {
+      const response = await axios.post('http://localhost:4069/society/homepage/wall', newPost, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      console.log('Create post response:', response.data);
+      setPosts([...posts, response.data.helpPost]);
+      setHelpDescr('');
+      setBloodDonation(false);
+      console.log('Help post created:', response.data.helpPost);
+    } catch (error) {
+      console.error('Failed to create post:', error);
+    }
+  };
+
+  const handleUpdatePost = async (postId, updatedDescription) => {
+    const token = user.token;
+
+    try {
+      const response = await axios.put(`http://localhost:4069/society/homepage/wall/${postId}/update`, { description: updatedDescription }, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       });
 
-      setRequests([...requests, response.data.request]);
-      setServiceType('');
-      setDescription('');
-      console.log('Maintenance request posted:', response.data.request);
+      setPosts(posts.map(post => post._id === postId ? response.data.helpPost : post));
+      console.log('Help post updated:', response.data.helpPost);
     } catch (error) {
-      console.error('Failed to post data:', error);
+      console.error('Failed to update post:', error);
     }
   };
 
-  const handleUpdateRequest = async (id, updatedDescription) => {
+  const handleResolvePost = async (postId) => {
     const token = user.token;
 
     try {
-      const response = await axios.put(`http://localhost:4069/society/homepage/services/${id}`, { description: updatedDescription }, {
+      const response = await axios.put(`http://localhost:4069/society/homepage/wall/${postId}/resolve`, {}, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       });
 
-      setRequests(requests.map(request => request._id === id ? response.data.request : request));
-      console.log('Maintenance request updated:', response.data.request);
+      setPosts(posts.map(post => post._id === postId ? response.data.helpPost : post));
+      console.log('Help post resolved:', response.data.helpPost);
     } catch (error) {
-      console.error('Failed to update data:', error);
+      console.error('Failed to resolve post:', error);
     }
   };
 
-  const handleDeleteRequest = async (id) => {
+  const handleDeletePost = async (postId) => {
     const token = user.token;
 
     try {
-      await axios.delete(`http://localhost:4069/society/homepage/services/${id}`, {
+      await axios.delete(`http://localhost:4069/society/homepage/wall/${postId}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       });
 
-      setRequests(requests.filter(request => request._id !== id));
-      console.log('Maintenance request deleted:', id);
+      setPosts(posts.filter(post => post._id !== postId));
+      console.log('Help post deleted:', postId);
     } catch (error) {
-      console.error('Failed to delete data:', error);
+      console.error('Failed to delete post:', error);
     }
   };
 
-  const handleResolveRequest = async (id) => {
+  const handleAddComment = async (postId, commentContent) => {
     const token = user.token;
 
     try {
-      await axios.post(`http://localhost:4069/society/homepage/services/${id}/resolve`, {}, {
+      const response = await axios.post(`http://localhost:4069/society/homepage/wall/${postId}/comment`, { content: commentContent }, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       });
 
-      setRequests(requests.filter(request => request._id !== id));
-      console.log('Maintenance request resolved:', id);
+      setPosts(posts.map(post => post._id === postId ? response.data.helpPost : post));
+      console.log('Comment added:', response.data.helpPost);
     } catch (error) {
-      console.error('Failed to resolve data:', error);
+      console.error('Failed to add comment:', error);
     }
   };
 
-  const renderRequestForm = () => (
-    <div className="request-form">
-      <h3>Post a Maintenance Request</h3>
-      <label>
-        Service Type:
-        <select value={serviceType} onChange={(e) => setServiceType(e.target.value)}>
-          <option value="">Select</option>
-          <option value="electric">Electric</option>
-          <option value="plumbing">Plumbing</option>
-          <option value="others">Others</option>
-        </select>
-      </label>
-      <label>
-        Description:
-        <textarea value={description} onChange={(e) => setDescription(e.target.value)}></textarea>
-      </label>
-      <button onClick={handlePostRequest}>Submit Request</button>
-    </div>
-  );
+  const handleUpdateComment = async (postId, commentId, updatedContent) => {
+    const token = user.token;
 
-  const renderRequests = () => (
-    <div className="requests-list">
-      <h3>Posted Maintenance Requests</h3>
-      <ul>
-        {requests && requests.length > 0 ? (
-          requests.map(request => (
-            <li key={request._id}>
-              <p>Service Type: {request.serviceType}</p>
-              <p>Description: {request.description}</p>
-              {user?.usertype === 'resident' && (
-                <>
-                  <button onClick={() => handleUpdateRequest(request._id, prompt('Update description:', request.description))}>Update</button>
-                  <button onClick={() => handleDeleteRequest(request._id)}>Delete</button>
-                </>
-              )}
-              {user?.usertype === 'maintenance' && (
-                <>
-                  <p>Name: {request.residentName}</p>
-                  <p>Email: {request.residentEmail}</p>
-                  <p>Contact Number: {request.residentContact}</p>
-                  <p>Flat Number: {request.residentFlat}</p>
-                  <button onClick={() => handleResolveRequest(request._id)}>Resolve</button>
-                </>
-              )}
-            </li>
-          ))
-        ) : (
-          <p>No maintenance requests found.</p>
-        )}
-      </ul>
+    try {
+      const response = await axios.put(`http://localhost:4069/society/homepage/wall/${postId}/comment/${commentId}`, { content: updatedContent }, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      setPosts(posts.map(post => post._id === postId ? response.data.helpPost : post));
+      console.log('Comment updated:', response.data.helpPost);
+    } catch (error) {
+      console.error('Failed to update comment:', error);
+    }
+  };
+
+  const handleDeleteComment = async (postId, commentId) => {
+    const token = user.token;
+
+    try {
+      const response = await axios.delete(`http://localhost:4069/society/homepage/wall/${postId}/comment/${commentId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      setPosts(posts.map(post => post._id === postId ? response.data.helpPost : post));
+      console.log('Comment deleted:', response.data.helpPost);
+    } catch (error) {
+      console.error('Failed to delete comment:', error);
+    }
+  };
+
+  const renderPosts = () => (
+    <div className="posts-list">
+      {posts.map(post => (
+        <div key={post._id} className="post-item">
+          <p><strong>Description:</strong> {post.description}</p>
+          {post.bloodDonation && <p><strong>Blood Donation Needed</strong></p>}
+          <p><strong>Posted by:</strong> {post.user.name}</p>
+          <p><strong>Flat Number:</strong> {post.user.flatno}</p>
+          <p><strong>Contact Number:</strong> {post.user.contactno}</p>
+          {user.id === post.user._id && !post.resolve_status && (
+            <div>
+              <button onClick={() => handleUpdatePost(post._id, prompt('Update description:', post.description))}>Update</button>
+              <button onClick={() => handleDeletePost(post._id)}>Delete</button>
+              <button onClick={() => handleResolvePost(post._id)}>Resolve</button>
+            </div>
+          )}
+          <div className="comments-section">
+            {post.comments.map(comment => (
+              <div key={comment._id} className="comment-item">
+                <p>{comment.content}</p>
+                <p><strong>By:</strong> {comment.user.name}</p>
+                {user.id === comment.user._id && (
+                  <div>
+                    <button onClick={() => handleUpdateComment(post._id, comment._id, prompt('Update comment:', comment.content))}>Update</button>
+                    <button onClick={() => handleDeleteComment(post._id, comment._id)}>Delete</button>
+                  </div>
+                )}
+              </div>
+            ))}
+            <textarea placeholder="Add a comment" onBlur={(e) => handleAddComment(post._id, e.target.value)}></textarea>
+          </div>
+        </div>
+      ))}
     </div>
   );
 
@@ -171,18 +209,24 @@ const MaintenancePage = () => {
     <div className="page-container">
       <Sidebar />
       <div className="main-content">
-        <h2>Maintenance</h2>
-        {user?.usertype === 'resident' ? (
-          <div className="resident-content">
-            <div className="post-request">{renderRequestForm()}</div>
-            <div className="view-requests">{renderRequests()}</div>
-          </div>
-        ) : (
-          renderRequests()
-        )}
+        <h2>HelpWall</h2>
+        <div className="create-post-form">
+          <h3>Create a Help Post</h3>
+          <label>
+            Description:
+            <textarea value={helpDescr} onChange={(e) => setHelpDescr(e.target.value)}></textarea>
+          </label>
+          <label>
+            Blood Donation Needed:
+            <input type="checkbox" checked={bloodDonation} onChange={(e) => setBloodDonation(e.target.checked)} />
+          </label>
+          <button onClick={handleCreatePost}>Create Post</button>
+        </div>
+        {renderPosts()}
       </div>
     </div>
   );
 };
 
 export default MaintenancePage;
+

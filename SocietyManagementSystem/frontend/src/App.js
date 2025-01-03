@@ -16,8 +16,8 @@ import Fitness from './components/Fitness';
 import Feedback from './components/Feedback';
 import Helpwall from './components/Helpwall';
 import VisitorFeaturePage from './pages/VisitorFeaturePage'
-import HelpWall from './components/Helpwall';
 
+import HelpWall from './components/Helpwall';
 
 
 import './App.css';

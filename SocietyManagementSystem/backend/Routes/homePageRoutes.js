@@ -7,7 +7,7 @@ import User from "../Model/userModel.js";
 const router = express.Router();
 //controllers
 
-import {getStaffAndResident,getAdmin,createHelpPost,getPosts, getSinglePost, updateORresolveHelpPost,
+import {getStaffAndResident,getAdmin,createHelpPost,getPosts, getSinglePost, updateHelpPost,
     deleteHelpPost,addCommentToHelpPost, updateComment, deleteComment,
     addBloodDonation,getAvailableBloodDonor, getSingleBloodDonor, updateDonorInfo,
 } from "../Controller/homePageController.js";
@@ -57,7 +57,7 @@ router.delete('/services/:serviceId',deleteServiceRequest);
 //help wall
 router.get('/wall', getPosts);
 router.post('/wall', createHelpPost);
-router.put('/wall/:postId/:modifyType', updateORresolveHelpPost); //only the user who has posted can update or resolve it
+router.put('/wall/:postId', updateHelpPost); //only the user who has posted can update or resolve it
 router.delete('/wall/:postId', deleteHelpPost);//admin can delete the post
 
 router.get('/wall/:postId', getSinglePost); //showing a single post with comments
