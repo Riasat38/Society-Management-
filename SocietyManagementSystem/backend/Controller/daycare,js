@@ -1,0 +1,90 @@
+import Daycare from "../Model/dayCareModel";
+
+export const addDaycare = async (req, res) => {
+    const { childName, age, dropTime, pickTime, schedule, additionalNotes } = req.body;
+    const userId = req.user.id;
+
+    try {
+        // Validate required fields
+        if (!childName || age === undefined || !dropTime || !pickTime || !schedule) {
+            return res.status(400).json({ error: "Missing required fields." });
+        }
+        if (age>10){
+            return res.status(400).json({ error: "Age limit crossed for the baby." });
+        }
+
+        // Create a new daycare enrollment
+        const daycareEntry = await Daycare.create({
+            user: userId,
+            childName,
+            age,
+            dropTime,
+            pickTime,
+            schedule,
+            additionalNotes
+        });
+
+        return res.status(201).json({
+            message: "Daycare enrollment added successfully.",
+            data: daycareEntry
+        });
+    } catch (error) {
+        console.error("Error adding daycare enrollment:", error);
+        return res.status(500).json({ error: "Internal Server Error." });
+    }
+};
+
+// Update a daycare enrollment
+export const updateDaycare = async (req, res) => {
+    const { daycareId } = req.params;
+    const { childName, age, dropTime, pickTime, schedule, additionalNotes } = req.body;
+
+    try {
+        const daycareEntry = await Daycare.findById(daycareId);
+
+        if (!daycareEntry) {
+            return res.status(404).json({ error: "Daycare enrollment not found." });
+        }
+
+        // Update fields only if provided
+        if (childName) daycareEntry.childName = childName;
+        if (age !== undefined ) daycareEntry.age = age;
+        if (dropTime) daycareEntry.dropTime = dropTime;
+        if (pickTime) daycareEntry.pickTime = pickTime;
+        if (schedule) daycareEntry.schedule = schedule;
+        if (additionalNotes) daycareEntry.additionalNotes = additionalNotes;
+
+        await daycareEntry.save();
+
+        return res.status(200).json({
+            message: "Daycare enrollment updated successfully.",
+            data: daycareEntry
+        });
+    } catch (error) {
+        console.error("Error updating daycare enrollment:", error);
+        return res.status(500).json({ error: "Internal Server Error." });
+    }
+};
+
+// Delete a daycare enrollment
+export const deleteDaycare = async (req, res) => {
+    const { daycareId } = req.params;
+
+    try {
+        const daycareEntry = await Daycare.findById(daycareId);
+
+        if (!daycareEntry) {
+            return res.status(404).json({ error: "Daycare enrollment not found." });
+        }
+
+        await daycareEntry.deleteOne();
+
+        return res.status(200).json({
+            message: "Daycare enrollment deleted successfully.",
+            data: daycareEntry
+        });
+    } catch (error) {
+        console.error("Error deleting daycare enrollment:", error);
+        return res.status(500).json({ error: "Internal Server Error." });
+    }
+};

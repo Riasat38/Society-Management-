@@ -172,4 +172,14 @@ router.put('/Quran/:classId', updateQuranClass);
 router.delete('/Quran/:id', deleteQuranClass);
 
 
+router.post("/", addDaycare);
+
+// PUT: Update an existing daycare enrollment
+router.put("/:daycareId", updateDaycare);
+
+// DELETE: Remove a daycare enrollment
+router.delete("/:daycareId", deleteDaycare);
+
+
+
 export default router;
