@@ -53,6 +53,8 @@ function VisitorFeaturePage() {
   }, [user]);
 
   const handleResidentFormSubmit = async (formData) => {
+    console.log('Resident form data:', formData);
+
     try {
       const response = await fetch('http://localhost:4069/society/homepage/visitor', {
         method: 'POST',
@@ -79,12 +81,14 @@ function VisitorFeaturePage() {
       console.log('keeper resolve', id);
       const action = 'resolve';
 
-      const response = await axios.post(`http://localhost:4069/society/homepage/visitor/${id}/${action}`, {
+      const res = fetch(`http://localhost:4069/society/homepage/visitor/${id}/${action}`, {
+        method: 'PUT',
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-      console.log('Keeper Resolve Response: ', response.data);
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+      })
+      console.log('Keeper Resolve Response: ', res);
       setVisitorRequests((prev) =>
         prev.map((req) =>
           req._id === id ? { ...req, resolve_status: true } : req
@@ -96,16 +100,21 @@ function VisitorFeaturePage() {
   };
 
   const handleGatekeeperFormSubmit = async (formData) => {
+    console.log('Gatekeeper form data:', formData);
+
     try {
       const response = await fetch('http://localhost:4069/society/homepage/visitor', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
         },
         body: JSON.stringify(formData),
       });
 
       const data = await response.json();
+      console.log('Gatekeeper form response:', data);
+
       if (response.ok) {
         console.log(data.message);
       } else {

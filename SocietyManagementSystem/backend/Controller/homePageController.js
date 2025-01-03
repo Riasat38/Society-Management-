@@ -4,93 +4,94 @@ import User from "../Model/userModel.js";
 import Help from '../Model/helpPost.js';
 import BloodDonation from "../Model/bloodDonationModel.js";
 
-export const getStaffAndResident = async (req,res) => {
-    try{
-        const staffs = await User.find({ usertype: 'maintenance'}).select('-password').lean();
-        const residents = await User.find({ usertype: 'resident'}).select('-password').lean();
-        if (!staffs || !residents){
+export const getStaffAndResident = async (req, res) => {
+    try {
+        const staffs = await User.find({ usertype: 'maintenance' }).select('-password').lean();
+        const residents = await User.find({ usertype: 'resident' }).select('-password').lean();
+        if (!staffs || !residents) {
             throw new Error("Data were not found");
         }
-        res.status(200).json({staffs,residents});
-    } catch(error){
+        res.status(200).json({ staffs, residents });
+    } catch (error) {
         console.log(error);
-        return res.status(400).json({error:error.message});
+        return res.status(400).json({ error: error.message });
     }
 };
 
-export const getAdmin = async(req,res) =>{
-    try{
-        const admin = await User.find({admin:true}).select('-password');
-        if(!admin){
+export const getAdmin = async (req, res) => {
+    try {
+        const admin = await User.find({ admin: true }).select('-password');
+        if (!admin) {
             throw new Error("No Admin Found")
         }
         res.status(200).json(admin);
-    } catch(error){
-        res.status(400).json({error:error.message})
+    } catch (error) {
+        res.status(400).json({ error: error.message })
     }
 };
-export const createHelpPost = async (req,res) => {
-     try {
-        const {help_descr} = req.body;
+export const createHelpPost = async (req, res) => {
+    try {
+        const { help_descr } = req.body;
         const userId = req.user.id;
-        const user = await User.findById(userId); 
-         if (!user) { 
-            throw new Error("User not found"); 
-        }  
-        if (!help_descr) { 
-            return res.status(400).json({ error: 'Description cannot be empty',
-                redirectUrl : `/society/homepage/wall`
-             }); 
+        const user = await User.findById(userId);
+        if (!user) {
+            throw new Error("User not found");
+        }
+        if (!help_descr) {
+            return res.status(400).json({
+                error: 'Description cannot be empty',
+                redirectUrl: `/society/homepage/wall`
+            });
         }
         const helpPost = await Help.create({ description: help_descr, user: userId });
-        console.log('Help Post Created:', helpPost); 
+        console.log('Help Post Created:', helpPost);
         return res.status(201).json({
-            msg : "Post Created Successfully!",
+            msg: "Post Created Successfully!",
             data: helpPost,
-            redirectUrl : "/society/homepage/wall"
+            redirectUrl: "/society/homepage/wall"
         })
-    } catch (error) { 
+    } catch (error) {
         console.error('Error creating help post:', error);
         return res.status(400).json(error);
-    } 
+    }
 };
 
-export const getPosts = async(req,res) => {
-    try{
+export const getPosts = async (req, res) => {
+    try {
         const userId = req.user.id;
-        const posts = await Help.find({resolve_status : false }).sort({ createdAt: -1 }) 
-        .populate('user','name email').lean();
-        if (!posts){
-            return res.status(400).json({error : "No Posts Available"});
+        const posts = await Help.find({ resolve_status: false }).sort({ createdAt: -1 })
+            .populate('user', 'name email').lean();
+        if (!posts) {
+            return res.status(400).json({ error: "No Posts Available" });
         }
         return res.status(200).json(posts);        //returning an object containing alll unresolved posts
-    } catch(error){
+    } catch (error) {
         return res.status(400).json(error);
-    }  
+    }
 };
 
 export const getSinglePost = async (req, res) => {
     try {
-      const userId = req.user.id;    // From middleware
-      const { postId } = req.params;    // Get the specific post ID from the URL
-      const helpPost = await Help.findById(postId).populate('comments.user', 'name username').lean(); 
-      
-      if (!helpPost) {
-        return res.status(404).json({ error: 'Help post not found' });
-      }
-      
-      return res.status(200).json(helpPost); // Return the specific post data
+        const userId = req.user.id;    // From middleware
+        const { postId } = req.params;    // Get the specific post ID from the URL
+        const helpPost = await Help.findById(postId).populate('comments.user', 'name username').lean();
+
+        if (!helpPost) {
+            return res.status(404).json({ error: 'Help post not found' });
+        }
+
+        return res.status(200).json(helpPost); // Return the specific post data
     } catch (error) {
-      console.error('Error fetching help post:', error);
-      return res.status(500).json({ error: 'Internal Server Error' });
+        console.error('Error fetching help post:', error);
+        return res.status(500).json({ error: 'Internal Server Error' });
     }
 };
 
 
 export const updateORresolveHelpPost = async (req, res) => {
     try {
-        const {helpPostId,modifyType} = req.params.postId;
-        const { description} = await req.body;
+        const { helpPostId, modifyType } = req.params.postId;
+        const { description } = await req.body;
         const userId = req.user.id;
 
         const helpPost = await Help.findById(helpPostId);
@@ -106,10 +107,10 @@ export const updateORresolveHelpPost = async (req, res) => {
         if (helpPost.resolve_status.resolved) {
             return res.status(400).json({ error: 'Cannot update a resolved post' });
         }
-        if (modifyType === 'update'){
+        if (modifyType === 'update') {
             helpPost.description = description;
         }
-        if (modifyType === 'resolve'){
+        if (modifyType === 'resolve') {
             helpPost.resolve_status = true
         }
         await helpPost.save();
@@ -117,7 +118,7 @@ export const updateORresolveHelpPost = async (req, res) => {
         res.status(200).json({
             message: 'Help post updated successfully',
             data: helpPost,
-            redirectUrl: `/society/homepage/wall/${helpPostId}`, 
+            redirectUrl: `/society/homepage/wall/${helpPostId}`,
         });
     } catch (error) {
         console.error('Error updating help post:', error);
@@ -150,33 +151,33 @@ export const deleteHelpPost = async (req, res) => {
 };
 
 
-export const addCommentToHelpPost = async (req, res) => { 
-    try { 
-        const { content } = req.body; 
+export const addCommentToHelpPost = async (req, res) => {
+    try {
+        const { content } = req.body;
         const userId = req.user.id;  //req.body
-        const {helpPostId} = req.params;
-        const helpPost = await Help.findById(helpPostId).populate('comments.user', 'name username');; 
-        if (!helpPost) { 
-            return res.status(404).json({ error: 'Help post not found' }); 
+        const { helpPostId } = req.params;
+        const helpPost = await Help.findById(helpPostId).populate('comments.user', 'name username');;
+        if (!helpPost) {
+            return res.status(404).json({ error: 'Help post not found' });
         }
         if (!userId) {
             return res.status(401).json({ error: 'User must be logged in to comment' });
-        } 
+        }
         if (!content || content.trim() === "") {
             return res.status(400).json({ error: 'Comment content cannot be empty' });
         }
-        const newComment = { user: userId, content: content};
+        const newComment = { user: userId, content: content };
 
-        helpPost.comments.push(newComment); 
+        helpPost.comments.push(newComment);
         await helpPost.save();
         return res.status(201).json({
-            comments:helpPost.comments,
+            comments: helpPost.comments,
             redirectUrl: `/society/homepage/wall/${helpPostId}`
         });
-    } catch (error) { 
-        console.error('Error adding comment:', error); 
-        res.status(500).json({ error: 'Internal Server Error' }); 
-    } 
+    } catch (error) {
+        console.error('Error adding comment:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
 };
 
 export const updateComment = async (req, res) => {
@@ -203,7 +204,7 @@ export const updateComment = async (req, res) => {
 
         return res.status(200).json({
             message: 'Comment updated successfully',
-            post : helpPost.comments
+            post: helpPost.comments
         });
     } catch (error) {
         console.error('Error updating comment:', error);
@@ -235,7 +236,7 @@ export const deleteComment = async (req, res) => {
 
         return res.status(200).json({
             message: 'Comment deleted successfully',
-            post : helpPost.comments
+            post: helpPost.comments
         });
     } catch (error) {
         console.error('Error deleting comment:', error);
@@ -247,72 +248,82 @@ export const deleteComment = async (req, res) => {
 //bloodDonation
 export const addBloodDonation = async (req, res) => {
     const userId = req.user.id;
-    const user = await User.findById(userId); 
+    const user = await User.findById(userId);
     try {
-        const {  bloodGroup,  lastBloodGiven} = await req.body;
+        const { bloodGroup, lastBloodGiven } = await req.body;
+        console.log('Blood Donation Data:', req.body);
 
-        if (!donorName ||  !bloodGroup || !lastBloodGiven) {
+
+        if (!user || !bloodGroup || !lastBloodGiven) {
             return res.status(400).json({ error: "Missing required fields" });
         }
 
-        const donorInfo= await BloodDonation.create({
-            donorName: userId,
-            donorContact: user.contactno,
+        const donorInfo = await BloodDonation.create({
+            donor: userId,
             bloodGroup: bloodGroup,
             lastBloodGiven: lastBloodGiven,
         });
 
         console.log('Blood Donation Record Created:', donorInfo);
-        res.status(201).json({ message: "Blood donation record added successfully",donorInfo });
+        res.status(201).json({ message: "Blood donation record added successfully", donorInfo });
     } catch (error) {
         console.error('Error adding blood donation record:', error);
         res.status(500).json({ error: "Internal Server Error" });
     }
 };
 
-export const getAvailableBloodDonor = async(req,res) => {
-    try{
-        const available_donors = await BloodDonation.find({available:true}).populate('donor', 'name contactno email flatno')
-        if (!available_donors){
+export const getAvailableBloodDonor = async (req, res) => {
+    try {
+        const available_donors = await BloodDonation.find().populate('donor', 'name contactno email flatno')
+        if (!available_donors) {
             throw new Error("No available Donors Found")
         }
+        console.log('Available Blood Donors:', available_donors);
+
         return res.status(200).json(available_donors);
-    } catch(error){
-        return res.status(400).json({error: error.message});
+    } catch (error) {
+        return res.status(400).json({ error: error.message });
     }
 };
 
-export const getSingleBloodDonor = async(req,res) =>{
-    try{
+export const getSingleBloodDonor = async (req, res) => {
+    try {
         const donor = await BloodDonation.findById(req.user.id).populate('user', "name username contactno flatno");
-    if (!user){
-        throw new Error("No user Found")
-    }
-    return res.status(200).json(donor)
-    }catch (error){
-        return res.status(400).json({error: error.message})
+        if (!user) {
+            throw new Error("No user Found")
+        }
+        return res.status(200).json(donor)
+    } catch (error) {
+        return res.status(400).json({ error: error.message })
     }
 };
 
-export const updateDonorInfo = async(req,res) => {
-    const {lastBloodGiven, availibility} = await req.body;
-    try{
-        if (!lastBloodGiven){
+export const updateDonorInfo = async (req, res) => {
+    const userId = req.user.id;
+    console.log('User ID:', userId);
+
+    const { lastBloodGiven, availibility } = await req.body;
+    console.log('Update Data:', req.body);
+
+
+
+    try {
+        if (!lastBloodGiven) {
             throw new Error("No data given to be updated")
         }
-        if (typeof(availibility) !== Boolean){
-            throw new Error("Wrong Data type");
-        }
-        const donor = await BloodDonation.findById(req.user.id).populate('user', "name username contactno flatno");
-        if(!donor){
+
+        const donor = await BloodDonation.findOneAndUpdate({ donor: userId }, {
+            lastBloodGiven: lastBloodGiven,
+            available: availibility
+        }).populate('donor', "name username contactno flatno");
+        if (!donor) {
             throw new Error("No data found")
         }
-        donor.lastBloodGiven = lastBloodGiven;
-        donor.available = availibility;
-        await donor.save();
+
+        console.log('Updated Blood Donor:', donor);
         return res.status(200).json(donor);
-    } catch(error){
-        return res.status(400).json({error:error.message});
+    } catch (error) {
+        return res.status(400).json({ error: error.message });
     }
 };
 
