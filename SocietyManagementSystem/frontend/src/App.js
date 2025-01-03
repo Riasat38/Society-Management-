@@ -14,6 +14,7 @@ import Daycare from './components/Daycare';
 import LocalSupport from './components/LocalSupport';
 import Fitness from './components/Fitness';
 import Feedback from './components/Feedback';
+import Helpwall from './components/Helpwall';
 
 
 import './App.css';
@@ -35,6 +36,7 @@ const AppContent = () => {
             <Route path="/home" element={<Home />} />
             <Route path="/directory" element={<Directory />} />
             <Route path="/maintenance" element={<Maintenance />} />
+            <Route path="/helpwall" element={<Helpwall />} />
             <Route path="/classes" element={<Classes />} />
             <Route path="/daycare" element={<Daycare />} />
             <Route path="/localsupport" element={<LocalSupport />} />
