@@ -32,12 +32,13 @@ function Sidebar() {
         <h3>Features</h3>
         <ul className="feature-list">
           <li onClick={() => navigate('/directory')}>Directory</li>
-          <li onClick={() => navigate('/maintenance')}>Maintenance</li>
+          <li onClick={() => navigate('/maintenance')}>Maintenance Service</li>
+          <li onClick={() => navigate('/helpwall')}>HelpWall</li>
           <li onClick={() => navigate('/classes')}>Enrichment Classes</li>
           <li onClick={() => navigate('/daycare')}>Daycare Service</li>
           <li onClick={() => navigate('/localsupport')}>Local Support</li>
           <li>Bookings</li>
-          <li>HelpWall</li>
+          
           <li>Emergency</li>
           <li>Lost & Found</li>
           <li>Marketplace</li>
