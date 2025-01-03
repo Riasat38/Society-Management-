@@ -228,4 +228,5 @@ const HelpWall = () => {
   );
 };
 
-export default HelpWall;
+export default MaintenancePage;
+

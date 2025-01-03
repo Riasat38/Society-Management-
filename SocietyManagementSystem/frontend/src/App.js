@@ -16,8 +16,8 @@ import Fitness from './components/Fitness';
 import Feedback from './components/Feedback';
 import Helpwall from './components/Helpwall';
 import VisitorFeaturePage from './pages/VisitorFeaturePage'
-import HelpWall from './components/HelpWallPage';
 
+import HelpWall from './components/Helpwall';
 
 
 import './App.css';
@@ -42,7 +42,7 @@ const AppContent = () => {
             <Route path="/helpwall" element={<Helpwall />} />
             <Route path="/classes" element={<Classes />} />
             <Route path="/daycare" element={<Daycare />} />
-            <Route path="/helpwall" element={<HelpWall />} />
+            <Route path="/helpwall" element={<Helpwall />} />
             <Route path="/localsupport" element={<LocalSupport />} />
             <Route path="/fitness" element={<Fitness />} />
             <Route path="/feedback" element={<Feedback />} />
