@@ -1,7 +1,7 @@
 `use strict`
 import express from "express";
 import { body, validationResult } from "express-validator";
-import { postRecruitment, getRecruitment, deleteRecruitment, updateRecruitment, getAllBloodDonations } from "../Controller/adminController.js";
+import { postRecruitment, getRecruitment, deleteRecruitment, updateRecruitment } from "../Controller/adminController.js";
 import User from "../Model/userModel.js";
 import {
     getAllAnnouncements,
@@ -15,7 +15,6 @@ const router = express.Router();
 router.get("/:id", (req, res) => {
     res.send("Admin Panel");
 });
-
 
 //Fetch all announcements
 router.get("/announcements", (req, res) => {

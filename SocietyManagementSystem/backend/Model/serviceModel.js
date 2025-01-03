@@ -19,8 +19,11 @@ const serviceSchema = new mongoose.Schema({
     resolve_status:{
         type: Boolean,
         default: false
-    }
+    },
+    flatno:{
+        type: String,
+        required: true
 },
-{timestamps : true});
+},{timestamps : true});
 
 export default mongoose.model("Service", serviceSchema);
